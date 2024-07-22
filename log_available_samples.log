@@ -64,6 +64,7 @@ Usage: PIDCorr.py [options]
      K_V3ProbNNK
      K_V3ProbNNp
      K_V3ProbNNpi
+
      e_CombDLLe
      e_V3ProbNNK
      e_V3ProbNNe
@@ -78,7 +79,6 @@ Usage: PIDCorr.py [options]
      p_V3ProbNNK
      p_V3ProbNNp
      p_V3ProbNNpi
-
 
      pi_CombDLLK
      pi_CombDLLp
@@ -97,10 +97,12 @@ Usage: PIDCorr.py [options]
      K_V3ProbNNK
      K_V3ProbNNp
      K_V3ProbNNpi
+
      mu_CombDLLmu
      mu_V3ProbNNK
      mu_V3ProbNNmu
      mu_V3ProbNNpi
+
      p_CombDLLK
      p_CombDLLp
      p_V2ProbNNK
@@ -109,6 +111,7 @@ Usage: PIDCorr.py [options]
      p_V3ProbNNK
      p_V3ProbNNp
      p_V3ProbNNpi
+
      pi_CombDLLK
      pi_CombDLLp
      pi_V2ProbNNK
@@ -117,6 +120,7 @@ Usage: PIDCorr.py [options]
      pi_V3ProbNNK
      pi_V3ProbNNp
      pi_V3ProbNNpi
+     
   Available PID configs for Run2/sim09 are: 
      K_CombDLLK_Brunel
      K_CombDLLmu_Brunel

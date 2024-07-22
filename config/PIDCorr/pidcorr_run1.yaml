@@ -42,6 +42,14 @@ MC_Bs2JpsiKstar:
     muplus:
             'ProbNNmu'  : 'ProbNNmu'
 
+    piplus: 
+        'ProbNNk'   : 'ProbNNk'
+        'ProbNNpi'  : 'ProbNNpi'
+        'ProbNNp'   : 'ProbNNp'
+
+        'PIDK'      : 'PIDK'
+        'PIDp'      : 'PIDp'
+        'PIDmu'     : 'PIDmu'
 
     # <<: *track_muon
     # <<: *JKpi

@@ -2,7 +2,7 @@
 Author       : Martin Andersson and Jie Wu j.wu@cern.ch and 
 Date         : 2024-07-20 16:21:32 +0200
 LastEditors  : Jie Wu j.wu@cern.ch
-LastEditTime : 2024-07-22 10:56:32 +0200
+LastEditTime : 2024-07-22 19:06:05 +0200
 FilePath     : PIDCorr_git_edit.py
 Description  : 
 
@@ -31,6 +31,7 @@ import PIDGenExpert.Run1.ConfigMC as ConfigMCSim08
 import PIDGenExpert.Run1.ConfigMCSim09 as ConfigMCSim09
 import PIDGenExpert.Run2.ConfigMC as ConfigMCRun2
 from math import sqrt, log
+from dataclasses import dataclass
 
 import os
 import yaml
@@ -46,15 +47,70 @@ def read_from_yaml(selection_files, mode=None):
     return selection_dict
 
 
+def check_file_existence(url: str) -> bool:
+    """
+    Check if a ROOT file exists and can be opened.
+
+    Args:
+    url (str): URL or path to the ROOT file.
+
+    Returns:
+    bool: True if the file exists and can be opened, False otherwise.
+    """
+
+    try:
+        # Attempt to open the file
+        input_file = TFile.Open(url, "READ")
+
+        # Check if the file is opened successfully and is not a zombie
+        if input_file and not input_file.IsZombie():
+            input_file.Close()
+            return True
+        else:
+            return False
+    except Exception as e:
+        # Optionally print out the error for debugging
+        # print(f"Error opening file: {e}")
+        return False
+
+
 # confdict links TRUEID with the correct sample
 # ------------------------------------
 confdict = {
     '13': 'mu',
-    '211': 'Pi',
+    '211': 'pi',
     '321': 'K',
     '2212': 'p',
     '11': 'e',
 }
+
+
+@dataclass
+class COUNTERS:
+    # From PID maps
+    counter_nocalib: int = 0
+    counter_nomc: int = 0
+    counter_lowcalib: int = 0
+    counter_lowmc: int = 0
+
+    # From the tree
+    n_mu: int = 0
+    n_pi: int = 0
+    n_k: int = 0
+    n_p: int = 0
+    n_e: int = 0
+    n_branch: int = 0
+
+    n_mu_nocalib: int = 0
+    n_pi_nocalib: int = 0
+    n_k_nocalib: int = 0
+    n_p_nocalib: int = 0
+    n_e_nocalib: int = 0
+    n_branch_nocalib: int = 0
+
+    count: int = 0
+    nPIDGen: int = 0
+    nPIDCorr: int = 0
 
 
 # ------------------------------------
@@ -238,10 +294,10 @@ def run_pid_corr(
 
     newtree, outfile = make_output_tree(tree, noclone, outfilename, outtree)
 
-    branches = [newtree.Branch(pidvar, addressof(s, "newpid"), pidvar + "/D")]
+    branches = [newtree.Branch(pidvar, addressof(s, "newpid"), f'{pidvar}/D')]
     if addcalibstat:
-        branches.append(newtree.Branch(pidvar + "_calibstat", addressof(s, "hint"), pidvar + "_calibstat/D"))
-        branches.append(newtree.Branch(pidvar + "_mcstat", addressof(s, "hintmc"), pidvar + "_mcstat/D"))
+        branches.append(newtree.Branch(f"{pidvar}_calibstat", addressof(s, "hint"), f'{pidvar}_calibstat/D'))
+        branches.append(newtree.Branch(f"{pidvar}_mcstat", addressof(s, "hintmc"), f'{pidvar}_mcstat/D')) if calibOption == "PIDCorr" else None
     fillobjs = get_fill_objects(newtree, outtree, branches)
 
     if infile:
@@ -286,64 +342,57 @@ def run_pid_corr(
     # -------------------------
     datakdes = {}
     simkdes = {}
+
+    # ----- for datapdf -----
     for particle_id, particle_name in confdict.items():
 
-        # for datapdf
-        try:
-            datapdf = Config.eosrootdir + "/" + samples[run][particle_name + "_" + PIDconfKey] + "/" + dataset + "_" + variant + ".root"
-            configs, phsp, minpid, pidmin, pidmax, transform_forward, transform_backward = get_settings_from_sample(samples[run][particle_name + "_" + PIDconfKey], run, dataset, variant)
+        # 1) Check if the particle_PIDconfKey exists in the config file
+        particle_PIDconfKey = f'{particle_name}_{PIDconfKey}'
+        if particle_PIDconfKey not in samples[run]:
+            print(f"INFO: Combination of {particle_name} and {PIDconfKey} is not corrected or resampled because the key do not exist in the configuration file.\n")
+            continue
+        # 2) Check if the datapdf exists
+        datapdf = Config.eosrootdir + "/" + samples[run][particle_PIDconfKey] + "/" + dataset + "_" + variant + ".root"
+        if check_file_existence(datapdf):
+            __configs, phsp, __minpid, __pidmin, __pidmax, __transform_forward, __transform_backward = get_settings_from_sample(samples[run][f'{particle_name}_{PIDconfKey}'], run, dataset, variant)
             datakdes[particle_name] = BinnedDensity("KDEPDF", phsp, datapdf)
+            print(f"INFO: Set datakde for particle: {particle_name}")
+        else:
+            print(f"INFO: Combination of {particle_name} and {PIDconfKey} is not resampled because the file to the pdf do not exists: {datapdf}.\n")
 
-        except:
-            # print("FAILED: Exception in Data+MC")
-            # try:  # For PIDGen we only need Data
-            #     print("INFO: No simulation, so only set datakde for particle:", particle_name)
-            # except:
-            print("FAILED: Exception Data")
-            print("INFO: Combination of", particle_name, "and", PIDconfKey, "is not resampled.\n")
+    # Check datakdes is not empty
+    if not datakdes:
+        print("ERROR: No pdfs for data is loaded, exiting...")
+        exit(1)
 
-    for particle_name in datakdes:
-        # for simpdf
-        if calibOption == "PIDCorr":
-            try:  # For PIDCorr we need Sim and Data
-                simpdf = ConfigMC.eosrootdir + "/" + samples[run][particle_name + "_" + PIDconfKey] + "/" + dataset + "_" + variant + ".root"
-                simkdes[particle_name] = BinnedDensity("KDEPDF", phsp, simpdf)
-                print("INFO: Set datakde and simkde for particle:", particle_name)
+    # ----- for simpdf -----
+    if calibOption == "PIDCorr":
+        for particle_name in datakdes:
+            if calibOption == "PIDCorr":
 
-            except:
-                print("FAILED: Exception in Data+MC, simpdf not found")
-                if calibStrict:
-                    exit(1)
+                particle_PIDconfKey = f'{particle_name}_{PIDconfKey}'
+                # Check if the simpdf exists
+                simpdf = ConfigMC.eosrootdir + "/" + samples[run][particle_PIDconfKey] + "/" + dataset + "_" + variant + ".root"
+                if check_file_existence(simpdf):
+                    __configs, phsp, __minpid, __pidmin, __pidmax, __transform_forward, __transform_backward = get_settings_from_sample(
+                        samples[run][f'{particle_name}_{PIDconfKey}'], run, dataset, variant
+                    )
+                    simkdes[particle_name] = BinnedDensity("KDEPDF", phsp, simpdf)
+                    print("INFO: Set datakde and simkde for particle:", particle_name)
                 else:
-                    print("INFO: No simulation, so only set datakde for particle:", particle_name)
-
-            # if run == 'run1' and (samples[run][particle_name + "_" + PIDconfKey] == "K_CombDLLmu" or samples[run][particle_name + "_" + PIDconfKey] == "pi_CombDLLmu"):
-            #     # For some reason, for these cases, the error is not caught..
-            #     print("INFO: No simulation, so only set datakde for particle:", particle_name)
-            # else:
+                    if calibStrict:
+                        print(f'ERROR: Combination of {particle_name} and {PIDconfKey} is not corrected or resampled because the file to the pdf do not exists: {simpdf}.')
+                        exit(1)
+                    else:
+                        print(f"INFO: No simulation, so only set datakde for particle (do resampling instead): {particle_name}")
 
     # -------------------------
-
-    n = 0
-
-    counter_nocalib = 0
-    counter_nomc = 0
-
-    counter_lowcalib = 0
-    counter_lowmc = 0
+    counter = COUNTERS()
 
     # Set trueid compiler and counters
     # -------------------------
     trueid = compile("i.%s" % track + "_TRUEID", '<string>', 'eval')
-    n_mu = 0
-    n_pi = 0
-    n_k = 0
-    n_p = 0
-    n_e = 0
-    n_branch = 0
-    count = 0
-    nPIDGen = 0
-    nPIDCorr = 0
+
     # -------------------------
     for i in tree:
         if calibOption == "PIDCorr":
@@ -353,7 +402,6 @@ def run_pid_corr(
             resample_corr = False
             resample_gen = True
 
-        count += 1
         point = std.vector('double')(4)
         # point[0] = (pidmin + pidmax) / 2.
         point[1] = eval(log_pt_code)
@@ -365,111 +413,149 @@ def run_pid_corr(
         # -------------------------
         TRUEID = eval(trueid)
         true_particle = confdict[str(abs(TRUEID))]
-        sample = samples[run][true_particle + "_" + PIDconfKey]
+        sample = samples[run][f'{true_particle}_{PIDconfKey}']
 
         if true_particle == "mu":
-            n_mu += 1
+            counter.n_mu += 1
         elif true_particle == "pi":
-            n_pi += 1
+            counter.n_pi += 1
         elif true_particle == "K":
-            n_k += 1
+            counter.n_k += 1
         elif true_particle == "p":
-            n_p += 1
+            counter.n_p += 1
         elif true_particle == "e":
-            n_e += 1
+            counter.n_e += 1
         else:
-            n_branch += 1
+            counter.n_branch += 1
 
-        datakde = datakdes[true_particle]
-        if resample_corr:
-            if true_particle in simkdes:
-                simkde = simkdes[true_particle]
-            else:
-                resample_corr = False
+        # Check if the particle_PIDconfKey exists in the config file
+        if true_particle in datakdes:
 
-                resample_gen = True
-
-        configs, phsp, minpid, pidmin, pidmax, transform_forward, transform_backward = get_settings_from_sample(sample, run, dataset, variant)
-        # print("-----------------------------------------------------------")
-        # print("-----------------------------------------------------------")
-        # print("DEBUG: Settings for sample",sample)
-        # print("DEBUG: run",run)
-        # print("DEBUG: dataset",dataset)
-        # print("DEBUG: variant",variant)
-        # print("DEBUG: pidmax",pidmax)
-        # print("DEBUG: pidmin",pidmin)
-        # print("DEBUG: minpid",minpid)
-        # print("-----------------------------------------------------------")
-        # print("-----------------------------------------------------------")
-        pid_code = compile(transform_backward, '<string>', 'eval')
-        oldpid_code = compile(transform_forward, '<string>', 'eval')
-        hdata.SetAxisRange(minpid, pidmax)
-        hdata.SetBins(100, minpid, pidmax)
-        hsim.SetAxisRange(minpid, pidmax)
-        hsim.SetBins(100, minpid, pidmax)
-
-        point[0] = (pidmin + pidmax) / 2.0
-        # -------------------------
-
-        # print point[0], point[1], point[2], point[3]
-
-        hdata.Reset()
-        hsim.Reset()
-
-        s.hint = hdata.Integral()
-        s.hintmc = hsim.Integral()
-        if s.hint == 0:
-            counter_nocalib += 1
-        elif s.hint < 10:
-            counter_lowcalib += 1
-        if s.hintmc == 0:
-            counter_nomc += 1
-        elif s.hintmc < 10:
-            counter_lowmc += 1
-
-        # Select the correct resampling method
-        if resample_corr:
-            datakde.slice(point, 0, hdata)
-            simkde.slice(point, 0, hsim)
-
-            x = eval(var_code)
-            oldpid = x
-            if transform_forward == "x" or x >= 0:
-                oldpid = eval(oldpid_code)
-                if oldpid < pidmin or oldpid > pidmax:
-                    x = oldpid
+            datakde = datakdes[true_particle]
+            if resample_corr:
+                if true_particle in simkdes:
+                    simkde = simkdes[true_particle]
                 else:
-                    x = datakde.transform(hsim, hdata, oldpid)
-                s.newpid = eval(pid_code)
-            else:  # The case for ProbNN<0, just leave as it is
-                s.newpid = x
+                    resample_corr = False
 
+                    resample_gen = True
+
+            __configs, __phsp, minpid, pidmin, pidmax, transform_forward, transform_backward = get_settings_from_sample(sample, run, dataset, variant)
+            # print("-----------------------------------------------------------")
+            # print("-----------------------------------------------------------")
+            # print("DEBUG: Settings for sample", sample)
+            # print("DEBUG: run", run)
+            # print("DEBUG: dataset", dataset)
+            # print("DEBUG: variant", variant)
+            # print("DEBUG: pidmax", pidmax)
+            # print("DEBUG: pidmin", pidmin)
+            # print("DEBUG: minpid", minpid)
+            # print("-----------------------------------------------------------")
+            # print("-----------------------------------------------------------")
+            pid_code = compile(transform_backward, '<string>', 'eval')
+            oldpid_code = compile(transform_forward, '<string>', 'eval')
+            hdata.SetAxisRange(minpid, pidmax)
+            hdata.SetBins(100, minpid, pidmax)
+            hsim.SetAxisRange(minpid, pidmax)
+            hsim.SetBins(100, minpid, pidmax)
+
+            point[0] = (pidmin + pidmax) / 2.0
+            # -------------------------
+
+            # print point[0], point[1], point[2], point[3]
+
+            hdata.Reset()
+            hsim.Reset()
+
+            # datakde, common for both resampling methods
+            datakde.slice(point, 0, hdata)
+            s.hint = hdata.Integral()
+            if s.hint == 0:
+                counter.counter_nocalib += 1
+            elif s.hint < 10:
+                counter.counter_lowcalib += 1
+
+            # Select the correct resampling method
+            if resample_corr:
+
+                # simkde, only for PIDCorr
+                simkde.slice(point, 0, hsim)
+                s.hintmc = hsim.Integral()
+                if s.hintmc == 0:
+                    counter.counter_nomc += 1
+                elif s.hintmc < 10:
+                    counter.counter_lowmc += 1
+
+                # PIDCorr algorithm
+                x = eval(var_code)
+                oldpid = x
+                if transform_forward == "x" or x >= 0:
+                    oldpid = eval(oldpid_code)
+                    if oldpid < pidmin or oldpid > pidmax:
+                        x = oldpid
+                    else:
+                        x = datakde.transform(hsim, hdata, oldpid)
+                    s.newpid = eval(pid_code)
+                else:  # The case for ProbNN<0, just leave as it is
+                    s.newpid = x
+
+                # Fill the tree
+                for obj in fillobjs:
+                    obj.Fill()
+
+                if counter.count % 1000 == 0:
+                    print(
+                        "Event %d/%d : Pt=%f, Eta=%f, Ntr=%f, OldPID=%f, PIDCorr=%f, X=%f, CalibStat=%f, MCStat=%f"
+                        % (counter.count, nentries, point[1], point[2], point[3], oldpid, s.newpid, x, s.hint, s.hintmc)
+                    )
+
+                counter.nPIDCorr += 1
+
+            elif resample_gen:
+
+                # PIDGen algorithm
+                x = eval(var_code)
+                oldpid = x
+
+                if hdata.Integral() > 0:
+                    x = hdata.GetRandom()
+                else:
+                    x = minpid + (pidmax - minpid) * gRandom.Rndm()
+
+                s.newpid = eval(pid_code)
+
+                # Fill the tree
+                for obj in fillobjs:
+                    obj.Fill()
+
+                if counter.count % 1000 == 0:  # or dontResamp) :
+                    print("PIDGen Event %d/%d : Pt=%f, Eta=%f, Ntr=%f, OldPID=%f, PIDGen=%f, X=%f" % (counter.count, nentries, point[1], point[2], point[3], oldpid, s.newpid, x))
+
+                counter.nPIDGen += 1
+
+        else:
+            if true_particle == "mu":
+                counter.n_mu_nocalib += 1
+            elif true_particle == "pi":
+                counter.n_pi_nocalib += 1
+            elif true_particle == "K":
+                counter.n_k_nocalib += 1
+            elif true_particle == "p":
+                counter.n_p_nocalib += 1
+            elif true_particle == "e":
+                counter.n_e_nocalib += 1
+            else:
+                counter.n_branch_nocalib += 1
+
+            s.newpid, s.hint, s.hintmc = -9999.0, -9999.0, -9999.0
+
+            # Fill the tree
             for obj in fillobjs:
                 obj.Fill()
 
-            if n % 1000 == 0:
-                print("Event %d/%d : Pt=%f, Eta=%f, Ntr=%f, OldPID=%f, PIDCorr=%f, X=%f, CalibStat=%f, MCStat=%f" % (n, nentries, point[1], point[2], point[3], oldpid, s.newpid, x, s.hint, s.hintmc))
+            print(f"INFO: Particle {true_particle} is not corrected or resampled because the key do not exist in the configuration file.\n")
 
-            nPIDCorr += 1
-        elif resample_gen:
-            datakde.slice(point, 0, hdata)
-
-            x = eval(var_code)
-            oldpid = x
-
-            if hdata.Integral() > 0:
-                x = hdata.GetRandom()
-            else:
-                x = minpid + (pidmax - minpid) * gRandom.Rndm()
-
-            s.newpid = eval(pid_code)
-            newtree.Fill()
-            if n % 1000 == 0:  # or dontResamp) :
-                print("PIDGen Event %d/%d : Pt=%f, Eta=%f, Ntr=%f, OldPID=%f, PIDGen=%f, X=%f" % (n, nentries, point[1], point[2], point[3], oldpid, s.newpid, x))
-
-            nPIDGen += 1
-
-        n += 1
+        counter.count += 1
 
     if noclone:
         tree.SetBranchStatus('*', True)
@@ -486,21 +572,35 @@ def run_pid_corr(
         newtree.Write()
         outfile.Close()
 
+    # Print statistics
     print("PID Resampling finished.")
-    print("  Calibration option: ", calibOption)
-    print("  Total number of events in the tree: ", nentries)
-    print("  Total number of events processed:      ", n)
-    print("      Resampled", nPIDCorr, "with Correlations (PID transformation) and", nPIDGen, "without (PIDGen)")
-    print("  Total number muons:                    ", n_mu)
-    print("  Total number pions:                    ", n_pi)
-    print("  Total number kaons:                    ", n_k)
-    print("  Total number protons:                  ", n_p)
-    print("  Total number electrons:                ", n_e)
-    print("  Total number from branch:              ", n_branch)
-    print("  Events with no calibration:            ", counter_nocalib)
-    print("  Eventw with low calib. stats (0<n<10): ", counter_lowcalib)
-    print("  Events with no MC:                     ", counter_nomc)
-    print("  Eventw with low MC stats (0<n<10):     ", counter_lowmc)
+    print(f"Calibration option:    {calibOption}")
+    print(f"    Total number of events in the tree:               {nentries}")
+    print(f"    Total number of events processed:                 {counter.count}")
+    print(f"Resampled {counter.nPIDCorr} with Correlations (PID transformation) and {counter.nPIDGen} without (PIDGen)")
+
+    # Calculating values for cleaner code
+    mu_calib = counter.n_mu - counter.n_mu_nocalib
+    pi_calib = counter.n_pi - counter.n_pi_nocalib
+    k_calib = counter.n_k - counter.n_k_nocalib
+    p_calib = counter.n_p - counter.n_p_nocalib
+    e_calib = counter.n_e - counter.n_e_nocalib
+    n_branch_calib = counter.n_branch - counter.n_branch_nocalib
+
+    # Creating a consistent format for items with slash
+    format_str = "    {:<40} {:>10d} / {:<10d}"
+    print(format_str.format("Total number of calibrated muons:", mu_calib, counter.n_mu))
+    print(format_str.format("Total number of calibrated pions:", pi_calib, counter.n_pi))
+    print(format_str.format("Total number of calibrated kaons:", k_calib, counter.n_k))
+    print(format_str.format("Total number of calibrated protons:", p_calib, counter.n_p))
+    print(format_str.format("Total number of calibrated electrons:", e_calib, counter.n_e))
+    print(format_str.format("Total number of events from branch:", n_branch_calib, counter.n_branch))
+
+    print("Events calib stats:")
+    print(f"    Events with no calibration (n==0):                {counter.counter_nocalib}")
+    print(f"    Events with low calib. stats (0<n<10):            {counter.counter_lowcalib}")
+    print(f"    Events with no MC (n==0):                         {counter.counter_nomc}")
+    print(f"    Events with low MC stats (0<n<10):                {counter.counter_lowmc}")
 
 
 def get_settings_from_sample(sample, run, dataset, variant, minpid=None):

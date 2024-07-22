@@ -3,7 +3,7 @@
  # @Author       : Jie Wu j.wu@cern.ch
  # @Date         : 2024-07-22 05:34:04 +0200
  # @LastEditors  : Jie Wu j.wu@cern.ch
- # @LastEditTime : 2024-07-22 11:25:20 +0200
+ # @LastEditTime : 2024-07-22 15:53:52 +0200
  # @FilePath     : run_pidcorr_local.sh
  # @Description  : 
  # 
@@ -14,8 +14,8 @@
 
 
 mode=MC_Bs2JpsiKstar
-year=2018
-pol=MagDown
+year=2011
+pol=MagUp
 
 input_file=/home/uzh/wjie/workspace/Bs2JpsiKst-fullRun2/PIDCalib_developing/test/test_Bd2JpsiKstar_${year}_${pol}.root
 input_tree_name=DecayTree
