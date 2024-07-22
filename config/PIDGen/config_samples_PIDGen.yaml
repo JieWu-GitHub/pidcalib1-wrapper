@@ -1,0 +1,96 @@
+option: 'PIDGen'
+strict: True
+
+
+samples:
+    run1:
+        # muon
+        mu_PIDmu: 'mu_CombDLLmu_IsMuon'
+        mu_PIDK: 'mu_CombDLLK_IsMuon'
+        mu_PIDp: 'mu_CombDLLp'
+        mu_PIDe: 'mu_CombDLLe'
+        mu_ProbNNk: 'mu_V3ProbNNK'
+        mu_ProbNNpi: 'mu_V3ProbNNpi'
+        mu_ProbNNmu: 'mu_V3ProbNNmu'
+        # kaon
+        K_PIDK: 'K_CombDLLK'
+        K_PIDmu: 'K_CombDLLmu'
+        K_PIDp: 'K_CombDLLp'
+        K_ProbNNk: 'K_V3ProbNNK'
+        K_ProbNNkNotpi: 'K_V3ProbNNKNotpi'
+        K_ProbNNkNotppi: 'K_V3ProbNNKNotppi'
+        K_ProbNNmu: 'K_V3ProbNNmu'
+        K_ProbNNp: 'K_V3ProbNNp'
+        K_ProbNNpi: 'K_V3ProbNNpi'
+        K_ProbNNpiNotk: 'K_V3ProbNNpiNotK'
+        # pion
+        pi_PIDK: 'pi_CombDLLK'
+        pi_PIDe: 'pi_CombDLLe'
+        pi_PIDmu: 'pi_CombDLLmu'
+        pi_PIDp: 'pi_CombDLLp'
+        pi_ProbNNk: 'pi_V3ProbNNK'
+        pi_ProbNNkNotpi: 'pi_V3ProbNNKNotpi'
+        pi_ProbNNmu: 'pi_V3ProbNNmu'
+        pi_ProbNNp: 'pi_V3ProbNNp'
+        pi_ProbNNpi: 'pi_V3ProbNNpi'
+        pi_ProbNNpiNotk: 'pi_V3ProbNNpiNotK'
+        pi_ProbNNpiNotkp: 'pi_V3ProbNNpiNotKp'
+        # proton
+        p_PIDK: 'p_CombDLLK'
+        p_PIDp: 'p_CombDLLp'
+        p_ProbNNk: 'p_V3ProbNNK'
+        p_ProbNNp: 'p_V3ProbNNp'
+        p_ProbNNpNotkpi: 'p_V3ProbNNpNotKpi'
+        p_ProbNNpi: 'p_V3ProbNNpi'
+        # electron
+        e_PIDe: 'e_CombDLLe'
+        e_ProbNNk: 'e_V3ProbNNK'
+        e_ProbNNe: 'e_V3ProbNNe'
+        e_ProbNNpi: 'e_V3ProbNNpi'
+        # gamma
+        gamma_CL: 'gamma_CL'
+
+    run2:
+        # muon
+        mu_PIDK: 'mu_CombDLLK_IsMuon_Brunel'
+        mu_PIDe: 'mu_CombDLLe_Brunel'
+        mu_PIDmu: 'mu_CombDLLmu_IsMuon_Brunel_NoPt'
+        mu_PIDp: 'mu_CombDLLp_Brunel'
+        mu_ProbNNk: 'mu_MC15TuneV1_ProbNNK_Brunel'
+        mu_ProbNNmu: 'mu_MC15TuneV1_ProbNNmu_Brunel_NoPt'
+        mu_ProbNNpi: 'mu_MC15TuneV1_ProbNNpi_Brunel'
+        # kaon
+        K_PIDK: 'K_CombDLLK_Brunel'
+        K_PIDmu: 'K_CombDLLmu_Brunel'
+        K_PIDp: 'K_CombDLLp_Brunel'
+        K_ProbNNkNotpi: 'K_MC15TuneV1_ProbNNKNotpi_Brunel'
+        K_ProbNNkNotppi: 'K_MC15TuneV1_ProbNNKNotppi_Brunel'
+        K_ProbNNk: 'K_MC15TuneV1_ProbNNK_Brunel_Mod2'
+        K_ProbNNmu: 'K_MC15TuneV1_ProbNNmu_Brunel'
+        K_ProbNNp: 'K_MC15TuneV1_ProbNNp_Brunel'
+        K_ProbNNpiNotk: 'K_MC15TuneV1_ProbNNpiNotK_Brunel'
+        K_ProbNNpi: 'K_MC15TuneV1_ProbNNpi_Brunel'
+        K_PIDKgt4_ProbNNk: 'K_PIDKgt4_MC15TuneV1_ProbNNK_Brunel'
+        # pion
+        pi_PIDK: 'pi_CombDLLK_Brunel'
+        pi_PIDe: 'pi_CombDLLe_Brunel'
+        pi_PIDmu: 'pi_CombDLLmu_Brunel'
+        pi_PIDp: 'pi_CombDLLp_Brunel'
+        pi_ProbNNkNotpi: 'pi_MC15TuneV1_ProbNNKNotpi_Brunel'
+        pi_ProbNNk: 'pi_MC15TuneV1_ProbNNK_Brunel'
+        pi_ProbNNe: 'pi_MC15TuneV1_ProbNNe_Brunel'
+        pi_ProbNNmu: 'pi_MC15TuneV1_ProbNNmu_Brunel'
+        pi_ProbNNp: 'pi_MC15TuneV1_ProbNNp_Brunel'
+        pi_ProbNNpiNotk: 'pi_MC15TuneV1_ProbNNpiNotK_Brunel'
+        pi_ProbNNpiNotkp: 'pi_MC15TuneV1_ProbNNpiNotKp_Brunel'
+        pi_ProbNNpi: 'pi_MC15TuneV1_ProbNNpi_Brunel_Mod2'
+        pi_PIDKlt2_ProbNNpi: 'pi_PIDKlt2_MC15TuneV1_ProbNNpi_Brunel'
+        # proton
+        p_PIDK: 'p_CombDLLK_Brunel'
+        p_PIDp: 'p_CombDLLp_Brunel'
+        p_ProbNNk: 'p_LbLcPi_MC15TuneV1_ProbNNK_Brunel'
+        p_ProbNNp: 'p_LbLcPi_MC15TuneV1_ProbNNp_Brunel'
+        p_ProbNNpNotkpi: 'p_LbLcPi_MC15TuneV1_ProbNNpNotKpi_Brunel'
+        p_ProbNNpi: 'p_LbLcPi_MC15TuneV1_ProbNNpi_Brunel'
+        # electron
+        e_PIDe: 'e_CombDLLe_Brunel'

@@ -1,0 +1,569 @@
+'''
+Author       : Martin Andersson and Jie Wu j.wu@cern.ch and 
+Date         : 2024-07-20 16:21:32 +0200
+LastEditors  : Jie Wu j.wu@cern.ch
+LastEditTime : 2024-07-22 10:56:32 +0200
+FilePath     : PIDCorr_git_edit.py
+Description  : 
+
+Copyright (c) 2024 by everyone, All Rights Reserved. 
+'''
+
+###############################################################################
+# (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
+#                                                                             #
+# This software is distributed under the terms of the GNU General Public      #
+# Licence version 3 (GPL Version 3), copied verbatim in the file "COPYING".   #
+#                                                                             #
+# In applying this licence, CERN does not waive the privileges and immunities #
+# granted to it by virtue of its status as an Intergovernmental Organization  #
+# or submit itself to any jurisdiction.                                       #
+###############################################################################
+from __future__ import print_function
+from __future__ import division
+from past.utils import old_div
+import sys, math, Meerkat
+from PIDPerfScripts.PIDGenUtils import get_argparser, defaults, make_output_tree, get_fill_objects
+from ROOT import TFile, TH1F, OneDimPhaseSpace, CombinedPhaseSpace, BinnedDensity, Logger, TTree, MyStruct, addressof, std, gRandom
+import PIDGenExpert.Run1.Config as ConfigRun1
+import PIDGenExpert.Run2.Config as ConfigRun2
+import PIDGenExpert.Run1.ConfigMC as ConfigMCSim08
+import PIDGenExpert.Run1.ConfigMCSim09 as ConfigMCSim09
+import PIDGenExpert.Run2.ConfigMC as ConfigMCRun2
+from math import sqrt, log
+
+import os
+import yaml
+
+
+def read_from_yaml(selection_files, mode=None):
+    selection_dict = {}
+    selection_files = selection_files.split(';') if isinstance(selection_files, str) else selection_files
+
+    for file in selection_files:
+        with open(file, 'r') as stream:
+            selection_dict.update(yaml.safe_load(stream)[mode]) if mode else selection_dict.update(yaml.safe_load(stream))
+    return selection_dict
+
+
+# confdict links TRUEID with the correct sample
+# ------------------------------------
+confdict = {
+    '13': 'mu',
+    '211': 'Pi',
+    '321': 'K',
+    '2212': 'p',
+    '11': 'e',
+}
+
+
+# ------------------------------------
+
+
+def main():
+    '''Main function to run PIDCorr.'''
+    parser = get_argparser(False)
+    parser.print_help()
+    args = parser.parse_args()
+
+    print(args)
+
+    infilename = args.input
+    intree = args.tree
+    outfilename = args.output
+    pidvar = args.pidvar
+    ptvar = args.ptvar
+    pvar = args.pvar
+    etavar = args.etavar
+    ntrvar = args.ntrvar
+    minpid = args.lowerpid
+    oldpidvar = args.simpidvar
+    config_file = args.config
+    dataset = args.dataset
+    variant = args.var
+    simversion = args.simversion
+    ntrscale = args.ntrscale
+    addcalibstat = args.calibstat
+
+    # The name of the track
+    track = oldpidvar.split('_')[0]
+
+    # the config sample name
+    PIDconfKey = pidvar.split('_')[1]
+
+    if not infilename:
+        print("Usage: PIDCorr.py [options]")
+        #  print "  For the usage example, look at pid_transform.sh file"
+        print("  Available PID configs for Run1/sim08 are: ")
+        for i in sorted(ConfigRun1.configs.keys()):
+            if i in list(ConfigMCSim08.configs.keys()):
+                print("    ", i)
+        print("  Available PID configs for Run1/sim09 are: ")
+        for i in sorted(ConfigRun1.configs.keys()):
+            if i in list(ConfigMCSim09.configs.keys()):
+                print("    ", i)
+        print("  Available PID configs for Run2/sim09 are: ")
+        for i in sorted(ConfigRun2.configs().keys()):
+            if i in list(ConfigMCRun2.configs.keys()):
+                print("    ", i)
+
+        # Exit politely
+        sys.exit(0)
+
+    # Read in the config file
+    PIDconfig = read_from_yaml(config_file)
+    calibOption = PIDconfig['option']
+    calibStrict = PIDconfig['strict']
+    samples = PIDconfig['samples']
+
+    run_pid_corr(
+        infilename=infilename,
+        intree=intree,
+        outfilename=outfilename,
+        pidvar=pidvar,
+        ptvar=ptvar,
+        pvar=pvar,
+        etavar=etavar,
+        ntrvar=ntrvar,
+        minpid=minpid,
+        oldpidvar=oldpidvar,
+        # config=conf,
+        samples=samples,
+        calibOption=calibOption,
+        calibStrict=calibStrict,
+        dataset=dataset,
+        variant=variant,
+        simversion=simversion,
+        ntrscale=ntrscale,
+        addcalibstat=addcalibstat,
+        noclone=args.noclone,
+        outtree=args.outtree,
+        PIDconfKey=PIDconfKey,
+        track=track,
+    )
+
+
+def run_pid_corr(
+    infilename=None,
+    intree=defaults['tree'],
+    outfilename=defaults['output'],
+    pidvar=defaults['pidvar'],
+    ptvar=defaults['ptvar'],
+    pvar=defaults['pvar'],
+    etavar=defaults['etavar'],
+    ntrvar=defaults['ntrvar'],
+    minpid=defaults['lowerpid'],
+    oldpidvar=defaults['simpidvar'],
+    # config=defaults['config'],
+    samples=None,
+    calibOption=None,
+    calibStrict=True,
+    dataset=defaults['dataset'],
+    variant=defaults['var'],
+    simversion=defaults['simversion'],
+    ntrscale=defaults['ntrscale'],
+    addcalibstat=defaults['calibstat'],
+    noclone=defaults['noclone'],
+    outtree=defaults['outtree'],
+    PIDconfKey="None",  # Added
+    track="None",
+):  # Added
+    '''Run PIDCorr with the given config. intree can be a TTree or the name of
+    the tree to be retrieved from the file named infilename. Similarly, outtree
+    can either be the name of the tree to be saved to the file outfilename
+    (default: the same name as intree), or a TTree to which the PIDGen branches
+    will be added.'''
+    if not infilename and not isinstance(intree, TTree):
+        raise ValueError("If intree isn't a TTree then you must specify infilename!")
+
+    if variant == "default":
+        variant = "distrib"  # to do: change this name in CreatePIDPdf
+
+    # datapdf = Config.eosrootdir + "/" + config + "/" + dataset + "_" + variant + ".root"
+    # simpdf = ConfigMC.eosrootdir + "/" + config + "/" + dataset + "_" + variant + ".root"
+
+    # Set year and run
+    year = None
+    run = None
+    try:
+        year = dataset.split("_")[1]
+    except:
+        print('Dataset format "%s" not recognized. Should be {MagUp,MagDown}_[Year]' % dataset)
+        quit()
+    if year in ["2011", "2012"]:
+        run = 'run1'
+    elif year in ["2015", "2016", "2017", "2018"]:
+        run = 'run2'
+    else:
+        print('Data taking year "%s" not recognized' % year)
+        quit()
+
+    # Set the correct Config and ConfigMC (for PIDCorr only)
+    if calibOption == "PIDCorr":
+        if simversion == "sim08":
+            ConfigMC = ConfigMCSim08
+            Config = ConfigRun1
+        elif simversion == "sim09":
+            ConfigMC = ConfigMCSim09
+            Config = ConfigRun1
+        elif simversion == "run2":
+            ConfigMC = ConfigMCRun2
+            Config = ConfigRun2
+        else:
+            print("Simulation version %s unknown" % simversion)
+            sys.exit(1)
+    elif calibOption == "PIDGen":
+        if run == 'run1':
+            Config = ConfigRun1
+        elif run == 'run2':
+            Config = ConfigRun2
+
+    # Read the input tree
+    if isinstance(intree, TTree):
+        tree = intree
+        infile = None
+    else:
+        infile = TFile.Open(infilename)
+        tree = infile.Get(intree)
+    if not tree:
+        print("Ntuple not found!")
+        sys.exit(1)
+
+    nentries = tree.GetEntries()
+
+    # datakde = BinnedDensity("KDEPDF", phsp, datapdf)
+    # simkde = BinnedDensity("KDEPDF", phsp, simpdf)
+
+    s = MyStruct()
+
+    newtree, outfile = make_output_tree(tree, noclone, outfilename, outtree)
+
+    branches = [newtree.Branch(pidvar, addressof(s, "newpid"), pidvar + "/D")]
+    if addcalibstat:
+        branches.append(newtree.Branch(pidvar + "_calibstat", addressof(s, "hint"), pidvar + "_calibstat/D"))
+        branches.append(newtree.Branch(pidvar + "_mcstat", addressof(s, "hintmc"), pidvar + "_mcstat/D"))
+    fillobjs = get_fill_objects(newtree, outtree, branches)
+
+    if infile:
+        infile.cd()
+
+    # Just setting some range for the TH1F as this will change later
+    # ----------------------------------
+    minpid = -150
+    pidmax = 150
+    # ----------------------------------
+    hdata = TH1F("hdata", "h", 100, minpid, pidmax)
+    hsim = TH1F("hsim", "h", 100, minpid, pidmax)
+
+    # print(transform_backward)
+
+    if noclone:
+        tree.SetBranchStatus('*', False)
+        tree.SetBranchStatus(oldpidvar, True)
+        tree.SetBranchStatus(ptvar, True)
+        tree.SetBranchStatus(ntrvar, True)
+    var_code = compile("i.%s" % oldpidvar, '<string>', 'eval')
+    # pid_code = compile(transform_backward, '<string>', 'eval')
+    # oldpid_code = compile(transform_forward, '<string>', 'eval')
+    log_pt_code = compile("log(i.%s)" % ptvar, '<string>', 'eval')
+    if etavar == None:
+        p_code = compile("i.%s" % pvar, '<string>', 'eval')
+        pt_code = compile("i.%s" % ptvar, '<string>', 'eval')
+        if noclone:
+            tree.SetBranchStatus(pvar, True)
+    else:
+        eta_code = compile("i.%s" % etavar, '<string>', 'eval')
+        if noclone:
+            tree.SetBranchStatus(etavar, True)
+    if ntrscale:
+        log_ntracks_code = compile("log(float(i.%s)*%f)" % (ntrvar, ntrscale), '<string>', 'eval')
+    else:
+        log_ntracks_code = compile("log(float(i.%s))" % ntrvar, '<string>', 'eval')
+
+    Logger.setLogLevel(1)
+
+    # Load all samples
+    # -------------------------
+    datakdes = {}
+    simkdes = {}
+    for particle_id, particle_name in confdict.items():
+
+        # for datapdf
+        try:
+            datapdf = Config.eosrootdir + "/" + samples[run][particle_name + "_" + PIDconfKey] + "/" + dataset + "_" + variant + ".root"
+            configs, phsp, minpid, pidmin, pidmax, transform_forward, transform_backward = get_settings_from_sample(samples[run][particle_name + "_" + PIDconfKey], run, dataset, variant)
+            datakdes[particle_name] = BinnedDensity("KDEPDF", phsp, datapdf)
+
+        except:
+            # print("FAILED: Exception in Data+MC")
+            # try:  # For PIDGen we only need Data
+            #     print("INFO: No simulation, so only set datakde for particle:", particle_name)
+            # except:
+            print("FAILED: Exception Data")
+            print("INFO: Combination of", particle_name, "and", PIDconfKey, "is not resampled.\n")
+
+    for particle_name in datakdes:
+        # for simpdf
+        if calibOption == "PIDCorr":
+            try:  # For PIDCorr we need Sim and Data
+                simpdf = ConfigMC.eosrootdir + "/" + samples[run][particle_name + "_" + PIDconfKey] + "/" + dataset + "_" + variant + ".root"
+                simkdes[particle_name] = BinnedDensity("KDEPDF", phsp, simpdf)
+                print("INFO: Set datakde and simkde for particle:", particle_name)
+
+            except:
+                print("FAILED: Exception in Data+MC, simpdf not found")
+                if calibStrict:
+                    exit(1)
+                else:
+                    print("INFO: No simulation, so only set datakde for particle:", particle_name)
+
+            # if run == 'run1' and (samples[run][particle_name + "_" + PIDconfKey] == "K_CombDLLmu" or samples[run][particle_name + "_" + PIDconfKey] == "pi_CombDLLmu"):
+            #     # For some reason, for these cases, the error is not caught..
+            #     print("INFO: No simulation, so only set datakde for particle:", particle_name)
+            # else:
+
+    # -------------------------
+
+    n = 0
+
+    counter_nocalib = 0
+    counter_nomc = 0
+
+    counter_lowcalib = 0
+    counter_lowmc = 0
+
+    # Set trueid compiler and counters
+    # -------------------------
+    trueid = compile("i.%s" % track + "_TRUEID", '<string>', 'eval')
+    n_mu = 0
+    n_pi = 0
+    n_k = 0
+    n_p = 0
+    n_e = 0
+    n_branch = 0
+    count = 0
+    nPIDGen = 0
+    nPIDCorr = 0
+    # -------------------------
+    for i in tree:
+        if calibOption == "PIDCorr":
+            resample_corr = True
+            resample_gen = False
+        else:
+            resample_corr = False
+            resample_gen = True
+
+        count += 1
+        point = std.vector('double')(4)
+        # point[0] = (pidmin + pidmax) / 2.
+        point[1] = eval(log_pt_code)
+        point[3] = eval(log_ntracks_code)
+        if etavar == None:
+            point[2] = -math.log(math.tan(math.asin(old_div(eval(pt_code), eval(p_code))) / 2.0))
+        else:
+            point[2] = eval(eta_code)
+        # -------------------------
+        TRUEID = eval(trueid)
+        true_particle = confdict[str(abs(TRUEID))]
+        sample = samples[run][true_particle + "_" + PIDconfKey]
+
+        if true_particle == "mu":
+            n_mu += 1
+        elif true_particle == "pi":
+            n_pi += 1
+        elif true_particle == "K":
+            n_k += 1
+        elif true_particle == "p":
+            n_p += 1
+        elif true_particle == "e":
+            n_e += 1
+        else:
+            n_branch += 1
+
+        datakde = datakdes[true_particle]
+        if resample_corr:
+            if true_particle in simkdes:
+                simkde = simkdes[true_particle]
+            else:
+                resample_corr = False
+
+                resample_gen = True
+
+        configs, phsp, minpid, pidmin, pidmax, transform_forward, transform_backward = get_settings_from_sample(sample, run, dataset, variant)
+        # print("-----------------------------------------------------------")
+        # print("-----------------------------------------------------------")
+        # print("DEBUG: Settings for sample",sample)
+        # print("DEBUG: run",run)
+        # print("DEBUG: dataset",dataset)
+        # print("DEBUG: variant",variant)
+        # print("DEBUG: pidmax",pidmax)
+        # print("DEBUG: pidmin",pidmin)
+        # print("DEBUG: minpid",minpid)
+        # print("-----------------------------------------------------------")
+        # print("-----------------------------------------------------------")
+        pid_code = compile(transform_backward, '<string>', 'eval')
+        oldpid_code = compile(transform_forward, '<string>', 'eval')
+        hdata.SetAxisRange(minpid, pidmax)
+        hdata.SetBins(100, minpid, pidmax)
+        hsim.SetAxisRange(minpid, pidmax)
+        hsim.SetBins(100, minpid, pidmax)
+
+        point[0] = (pidmin + pidmax) / 2.0
+        # -------------------------
+
+        # print point[0], point[1], point[2], point[3]
+
+        hdata.Reset()
+        hsim.Reset()
+
+        s.hint = hdata.Integral()
+        s.hintmc = hsim.Integral()
+        if s.hint == 0:
+            counter_nocalib += 1
+        elif s.hint < 10:
+            counter_lowcalib += 1
+        if s.hintmc == 0:
+            counter_nomc += 1
+        elif s.hintmc < 10:
+            counter_lowmc += 1
+
+        # Select the correct resampling method
+        if resample_corr:
+            datakde.slice(point, 0, hdata)
+            simkde.slice(point, 0, hsim)
+
+            x = eval(var_code)
+            oldpid = x
+            if transform_forward == "x" or x >= 0:
+                oldpid = eval(oldpid_code)
+                if oldpid < pidmin or oldpid > pidmax:
+                    x = oldpid
+                else:
+                    x = datakde.transform(hsim, hdata, oldpid)
+                s.newpid = eval(pid_code)
+            else:  # The case for ProbNN<0, just leave as it is
+                s.newpid = x
+
+            for obj in fillobjs:
+                obj.Fill()
+
+            if n % 1000 == 0:
+                print("Event %d/%d : Pt=%f, Eta=%f, Ntr=%f, OldPID=%f, PIDCorr=%f, X=%f, CalibStat=%f, MCStat=%f" % (n, nentries, point[1], point[2], point[3], oldpid, s.newpid, x, s.hint, s.hintmc))
+
+            nPIDCorr += 1
+        elif resample_gen:
+            datakde.slice(point, 0, hdata)
+
+            x = eval(var_code)
+            oldpid = x
+
+            if hdata.Integral() > 0:
+                x = hdata.GetRandom()
+            else:
+                x = minpid + (pidmax - minpid) * gRandom.Rndm()
+
+            s.newpid = eval(pid_code)
+            newtree.Fill()
+            if n % 1000 == 0:  # or dontResamp) :
+                print("PIDGen Event %d/%d : Pt=%f, Eta=%f, Ntr=%f, OldPID=%f, PIDGen=%f, X=%f" % (n, nentries, point[1], point[2], point[3], oldpid, s.newpid, x))
+
+            nPIDGen += 1
+
+        n += 1
+
+    if noclone:
+        tree.SetBranchStatus('*', True)
+
+    # If adding branches to an existing output tree, make sure
+    # the number of entries is set correctly for the tree.
+    if isinstance(outtree, TTree):
+        newtree.SetEntries(tree.GetEntries())
+
+    if infile:
+        infile.Close()
+    if outfile:
+        outfile.cd()
+        newtree.Write()
+        outfile.Close()
+
+    print("PID Resampling finished.")
+    print("  Calibration option: ", calibOption)
+    print("  Total number of events in the tree: ", nentries)
+    print("  Total number of events processed:      ", n)
+    print("      Resampled", nPIDCorr, "with Correlations (PID transformation) and", nPIDGen, "without (PIDGen)")
+    print("  Total number muons:                    ", n_mu)
+    print("  Total number pions:                    ", n_pi)
+    print("  Total number kaons:                    ", n_k)
+    print("  Total number protons:                  ", n_p)
+    print("  Total number electrons:                ", n_e)
+    print("  Total number from branch:              ", n_branch)
+    print("  Events with no calibration:            ", counter_nocalib)
+    print("  Eventw with low calib. stats (0<n<10): ", counter_lowcalib)
+    print("  Events with no MC:                     ", counter_nomc)
+    print("  Eventw with low MC stats (0<n<10):     ", counter_lowmc)
+
+
+def get_settings_from_sample(sample, run, dataset, variant, minpid=None):
+    if run == 'run1':
+        # print("INFO: Getting Run1 settings")
+        calibfilename = ConfigRun1.eosrootdir + "/" + sample + "/" + "%s_%s.root" % (dataset, variant)
+        transform_forward = ConfigRun1.configs[sample]['transform_forward']
+        transform_backward = ConfigRun1.configs[sample]['transform_backward']
+        configs = ConfigRun1.configs
+    elif run == 'run2':
+        # print("INFO: Getting Run2 settings")
+        calibfilename = ConfigRun2.eosrootdir + "/" + sample + "/" + "%s_%s.root" % (dataset, variant)
+        configs = ConfigRun2.configs()
+        if 'gamma' in list(configs[sample].keys()):
+            gamma = configs[sample]['gamma']
+            if gamma < 0:
+                transform_forward = "(1.-(1.-x)**%f)" % abs(gamma)
+                transform_backward = "(1.-(1.-x)**%f)" % (1.0 / abs(gamma))
+            elif gamma == 1.0:
+                transform_forward = "x"
+                transform_backward = "x"
+            else:
+                transform_forward = "((x)**%f)" % abs(gamma)
+                transform_backward = "((x)**%f)" % (1.0 / abs(gamma))
+        else:
+            transform_forward = configs[sample]['transform_forward']
+            transform_backward = configs[sample]['transform_backward']
+    else:
+        print("ERROR: Incorrect run=", run, "EXITING...")
+        exit()
+
+    pidmin = 0.0
+    pidmax = 1.0
+    if 'limits' in configs[sample]:
+        pidmin = configs[sample]['limits'][0]
+        pidmax = configs[sample]['limits'][1]
+    if minpid == None:
+        # print("DEBUG: minpid is none")
+        minpid = pidmin
+    else:
+        # print("DEBUG: minpid is not none")
+        minpid = float(minpid)
+        if minpid < pidmin:
+            minpid = pidmin
+
+    # Calculate the minimum PID variable to generate (after transformation)
+    x = pidmin
+    pidmin = eval(transform_forward)
+    x = pidmax
+    pidmax = eval(transform_forward)
+    x = minpid
+    minpid = eval(transform_forward)
+
+    pid_phsp = OneDimPhaseSpace("PIDPhsp", pidmin, pidmax)
+    mom_phsp = OneDimPhaseSpace("MomPhsp", 5.5, 9.5)
+    eta_phsp = OneDimPhaseSpace("EtaPhsp", 1.5, 5.5)
+    ntr_phsp = OneDimPhaseSpace("NtrPhsp", 3.0, 6.5)
+    pidmom_phsp = CombinedPhaseSpace("PIDMomPhsp", pid_phsp, mom_phsp)
+    pidmometa_phsp = CombinedPhaseSpace("PIDMomEtaPhsp", pidmom_phsp, eta_phsp)
+    phsp = CombinedPhaseSpace("FullPhsp", pidmometa_phsp, ntr_phsp)
+
+    return configs, phsp, minpid, pidmin, pidmax, transform_forward, transform_backward
+
+
+if __name__ == '__main__':
+    main()

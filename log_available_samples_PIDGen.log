@@ -1,0 +1,196 @@
+
+[1mRooFit v3.60 -- Developed by Wouter Verkerke and David Kirkby[0m 
+                Copyright (C) 2000-2013 NIKHEF, University of California & Stanford University
+                All rights reserved, please read http://roofit.sourceforge.net/license.txt
+
+importing from  /cvmfs/lhcb.cern.ch/lib/lhcb/URANIA/URANIA_v10r1/InstallArea/x86_64_v2-centos7-gcc11-opt/python/PIDPerfScripts
+usage: PIDGen_git.py [-h] [-i INPUT] [-t TREE] [-o OUTPUT] [-p PIDVAR]
+                     [-m PTVAR] [-q PVAR] [-e ETAVAR] [-n NTRVAR]
+                     [-l LOWERPID] [-c CONFIG] [-d DATASET] [-v VAR]
+                     [-f NTRSCALE] [-a] [--noclone] [--outtree OUTTREE]
+                     [-s SEED]
+
+PIDGen
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -i INPUT, --input INPUT
+                        Input file name
+  -t TREE, --tree TREE  Input tree name
+  -o OUTPUT, --output OUTPUT
+                        Output file name
+  -p PIDVAR, --pidvar PIDVAR
+                        Output name for the generated/corrected PID variable
+  -m PTVAR, --ptvar PTVAR
+                        Pt variable
+  -q PVAR, --pvar PVAR  P variable
+  -e ETAVAR, --etavar ETAVAR
+                        Eta variable (if None, calculated from P and Pt)
+  -n NTRVAR, --ntrvar NTRVAR
+                        Ntracks variable
+  -l LOWERPID, --lowerpid LOWERPID
+                        Lower PID value to generate
+  -c CONFIG, --config CONFIG
+                        PID response to sample. Run without giving -i or
+                        --input to list available configs.
+  -d DATASET, --dataset DATASET
+                        Dataset (polarity_year)
+  -v VAR, --var VAR     Variation (default, syst_N, stat_N etc.)
+  -f NTRSCALE, --ntrscale NTRSCALE
+                        Scale factor for nTracks variable (default - no
+                        scaling)
+  -a, --calibstat       Add calibration statistics branch
+  --noclone             Don't clone the original tree in the output.
+  --outtree OUTTREE     Name of the output TTree
+  -s SEED, --seed SEED  Initial random seed
+Namespace(input=None, tree='tree', output='output.root', pidvar='PID_gen', ptvar='Pt', pvar='P', etavar=None, ntrvar='nTracks', lowerpid=None, config='p_V3ProbNNp', dataset='MagDown_2011', var='default', ntrscale=None, calibstat=False, noclone=False, outtree=None, seed=None)
+Usage: PIDGen.py [options]
+  Available PID configs are: 
+    For Run1 : 
+    
+              K_CombDLLK
+              K_CombDLLmu
+              K_CombDLLp
+              K_V2ProbNNK
+              K_V2ProbNNp
+              K_V2ProbNNpi
+              K_V3ProbNNK
+              K_V3ProbNNKNotpi
+              K_V3ProbNNKNotppi
+              K_V3ProbNNmu
+              K_V3ProbNNp
+              K_V3ProbNNpi
+              K_V3ProbNNpiNotK
+
+            e_CombDLLe
+            e_S20CombDLLe
+            e_S20V3ProbNNe
+            e_V3ProbNNK
+            e_V3ProbNNe
+            e_V3ProbNNpi
+
+            gamma_CL
+
+                mu_CombDLLK
+                mu_CombDLLK_IsMuon
+                mu_CombDLLe
+                mu_CombDLLmu
+                mu_CombDLLmu_IsMuon
+                mu_CombDLLp
+
+                mu_V3ProbNNK
+                mu_V3ProbNNmu
+                mu_V3ProbNNpi
+
+
+              p_CombDLLK
+              p_CombDLLp
+              p_V2ProbNNK
+              p_V2ProbNNp
+              p_V2ProbNNpi
+              p_V3ProbNNK
+              p_V3ProbNNp
+              p_V3ProbNNpNotKpi
+              p_V3ProbNNpi
+
+
+
+                pi_CombDLLK
+                pi_CombDLLe
+                pi_CombDLLmu
+                pi_CombDLLp
+                pi_V2ProbNNK
+                pi_V2ProbNNe
+                pi_V2ProbNNp
+                pi_V2ProbNNpi
+                pi_V3ProbNNK
+                pi_V3ProbNNKNotpi
+                pi_V3ProbNNmu
+                pi_V3ProbNNp
+                pi_V3ProbNNpi
+                pi_V3ProbNNpiNotK
+                pi_V3ProbNNpiNotKp
+
+    For Run2 : 
+              K_CombDLLK_Brunel
+              K_CombDLLmu_Brunel
+              K_CombDLLp_Brunel
+              K_MC15TuneV1_ProbNNKNotpi_Brunel
+              K_MC15TuneV1_ProbNNKNotppi_Brunel
+              K_MC15TuneV1_ProbNNK_Brunel
+              K_MC15TuneV1_ProbNNK_Brunel_Mod2
+              K_MC15TuneV1_ProbNNmu_Brunel
+              K_MC15TuneV1_ProbNNp_Brunel
+              K_MC15TuneV1_ProbNNpiNotK_Brunel
+              K_MC15TuneV1_ProbNNpi_Brunel
+              K_PIDKgt4_MC15TuneV1_ProbNNK_Brunel
+
+       e_CombDLLK_Brunel
+       e_CombDLLK_Stripping
+       e_CombDLLe_Brunel
+       e_CombDLLe_Stripping
+       e_CombDLLmu_Brunel
+       e_CombDLLmu_Stripping
+       e_CombDLLp_Brunel
+       e_CombDLLp_Stripping
+       e_MC15TuneV1_ProbNNK_Brunel
+       e_MC15TuneV1_ProbNNK_Stripping
+       e_MC15TuneV1_ProbNNe_Brunel
+       e_MC15TuneV1_ProbNNe_Stripping
+       e_MC15TuneV1_ProbNNmu_Brunel
+       e_MC15TuneV1_ProbNNmu_Stripping
+       e_MC15TuneV1_ProbNNp_Brunel
+       e_MC15TuneV1_ProbNNp_Stripping
+       e_MC15TuneV1_ProbNNpi_Brunel
+       e_MC15TuneV1_ProbNNpi_Stripping
+
+                  mu_CombDLLK_Brunel
+                  mu_CombDLLK_IsMuon_Brunel
+                  mu_CombDLLe_Brunel
+                  mu_CombDLLmu_Brunel
+                  mu_CombDLLmu_Brunel_NoPt
+                  mu_CombDLLmu_IsMuon_Brunel
+                  mu_CombDLLmu_IsMuon_Brunel_NoPt
+                  mu_CombDLLmu_isMuon_Brunel
+                  mu_CombDLLp_Brunel
+                  mu_MC15TuneV1_ProbNNK_Brunel
+                  mu_MC15TuneV1_ProbNNmu_Brunel
+                  mu_MC15TuneV1_ProbNNmu_Brunel_NoPt
+                  mu_MC15TuneV1_ProbNNpi_Brunel
+
+
+
+       p_CombDLLK_Brunel
+       p_CombDLLp_Brunel
+       p_LbLcMu_MC15TuneV1_ProbNNp_Brunel
+       p_LbLcPi_DLLpgt5_DLLpKgt5_MC15TuneV1_ProbNNp_Brunel
+       p_LbLcPi_MC12TuneV2gt0.05_MC15TuneV1_ProbNNp_Brunel
+       p_LbLcPi_MC15TuneV1_ProbNNK_Brunel
+       p_LbLcPi_MC15TuneV1_ProbNNpNotKpi_Brunel
+       p_LbLcPi_MC15TuneV1_ProbNNp_Brunel
+       p_LbLcPi_MC15TuneV1_ProbNNp_Brunel_Mod2
+       p_LbLcPi_MC15TuneV1_ProbNNpi_Brunel
+       p_LbLcPi_PIDpgt0_MC15TuneV1_ProbNNp_Brunel
+       p_Lc_MC15TuneV1_ProbNNp_Brunel
+       p_MC15TuneV1_ProbNNK_Brunel
+       p_MC15TuneV1_ProbNNp_Brunel
+       p_MC15TuneV1_ProbNNpi_Brunel
+
+
+
+
+       pi_CombDLLK_Brunel
+       pi_CombDLLe_Brunel
+       pi_CombDLLmu_Brunel
+       pi_CombDLLp_Brunel
+       pi_MC15TuneV1_ProbNNKNotpi_Brunel
+       pi_MC15TuneV1_ProbNNK_Brunel
+       pi_MC15TuneV1_ProbNNe_Brunel
+       pi_MC15TuneV1_ProbNNmu_Brunel
+       pi_MC15TuneV1_ProbNNp_Brunel
+       pi_MC15TuneV1_ProbNNpiNotK_Brunel
+       pi_MC15TuneV1_ProbNNpiNotKp_Brunel
+       pi_MC15TuneV1_ProbNNpi_Brunel
+       pi_MC15TuneV1_ProbNNpi_Brunel_Mod2
+       pi_PIDKlt2_MC15TuneV1_ProbNNpi_Brunel
+       

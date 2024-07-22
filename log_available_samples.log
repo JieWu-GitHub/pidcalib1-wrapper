@@ -1,0 +1,155 @@
+
+[1mRooFit v3.60 -- Developed by Wouter Verkerke and David Kirkby[0m 
+                Copyright (C) 2000-2013 NIKHEF, University of California & Stanford University
+                All rights reserved, please read http://roofit.sourceforge.net/license.txt
+
+importing from  /cvmfs/lhcb.cern.ch/lib/lhcb/URANIA/URANIA_v10r1/InstallArea/x86_64_v2-centos7-gcc11-opt/python/PIDPerfScripts
+usage: PIDCorr_git.py [-h] [-i INPUT] [-t TREE] [-o OUTPUT] [-p PIDVAR]
+                      [-m PTVAR] [-q PVAR] [-e ETAVAR] [-n NTRVAR]
+                      [-l LOWERPID] [-c CONFIG] [-d DATASET] [-v VAR]
+                      [-f NTRSCALE] [-a] [--noclone] [--outtree OUTTREE]
+                      [-s SIMPIDVAR] [-S SIMVERSION]
+
+PIDCorr
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -i INPUT, --input INPUT
+                        Input file name
+  -t TREE, --tree TREE  Input tree name
+  -o OUTPUT, --output OUTPUT
+                        Output file name
+  -p PIDVAR, --pidvar PIDVAR
+                        Output name for the generated/corrected PID variable
+  -m PTVAR, --ptvar PTVAR
+                        Pt variable
+  -q PVAR, --pvar PVAR  P variable
+  -e ETAVAR, --etavar ETAVAR
+                        Eta variable (if None, calculated from P and Pt)
+  -n NTRVAR, --ntrvar NTRVAR
+                        Ntracks variable
+  -l LOWERPID, --lowerpid LOWERPID
+                        Lower PID value to generate
+  -c CONFIG, --config CONFIG
+                        PID response to sample. Run without giving -i or
+                        --input to list available configs.
+  -d DATASET, --dataset DATASET
+                        Dataset (polarity_year)
+  -v VAR, --var VAR     Variation (default, syst_N, stat_N etc.)
+  -f NTRSCALE, --ntrscale NTRSCALE
+                        Scale factor for nTracks variable (default - no
+                        scaling)
+  -a, --calibstat       Add calibration statistics branch
+  --noclone             Don't clone the original tree in the output.
+  --outtree OUTTREE     Name of the output TTree
+  -s SIMPIDVAR, --simpidvar SIMPIDVAR
+                        Original, simulated PID variable to correct. Eg,
+                        <head>_PID(K|p|mu|e) or <head>_ProbNN(pi|k|p|mu|e)
+  -S SIMVERSION, --simversion SIMVERSION
+                        Simulation version ("sim08" or "sim09" for Run1,
+                        "run2" for Run2)
+Namespace(input=None, tree='tree', output='output.root', pidvar='PID_gen', ptvar='Pt', pvar='P', etavar=None, ntrvar='nTracks', lowerpid=None, config='p_V3ProbNNp', dataset='MagDown_2011', var='default', ntrscale=None, calibstat=False, noclone=False, outtree=None, simpidvar='PID', simversion='sim08')
+conf= p_V3ProbNNp
+dataset= MagDown_2011
+variant= default
+pidvar= PID_gen
+oldpidvar= PID
+Usage: PIDCorr.py [options]
+  Available PID configs for Run1/sim08 are: 
+     K_CombDLLK
+     K_CombDLLp
+     K_V2ProbNNK
+     K_V2ProbNNp
+     K_V2ProbNNpi
+     K_V3ProbNNK
+     K_V3ProbNNp
+     K_V3ProbNNpi
+     e_CombDLLe
+     e_V3ProbNNK
+     e_V3ProbNNe
+     e_V3ProbNNpi
+
+     p_CombDLLK
+     p_CombDLLp
+     p_V2ProbNNK
+     p_V2ProbNNp
+     p_V2ProbNNpi
+     
+     p_V3ProbNNK
+     p_V3ProbNNp
+     p_V3ProbNNpi
+
+
+     pi_CombDLLK
+     pi_CombDLLp
+     pi_V2ProbNNK
+     pi_V2ProbNNp
+     pi_V2ProbNNpi
+     pi_V3ProbNNK
+     pi_V3ProbNNp
+     pi_V3ProbNNpi
+  Available PID configs for Run1/sim09 are: 
+     K_CombDLLK
+     K_CombDLLp
+     K_V2ProbNNK
+     K_V2ProbNNp
+     K_V2ProbNNpi
+     K_V3ProbNNK
+     K_V3ProbNNp
+     K_V3ProbNNpi
+     mu_CombDLLmu
+     mu_V3ProbNNK
+     mu_V3ProbNNmu
+     mu_V3ProbNNpi
+     p_CombDLLK
+     p_CombDLLp
+     p_V2ProbNNK
+     p_V2ProbNNp
+     p_V2ProbNNpi
+     p_V3ProbNNK
+     p_V3ProbNNp
+     p_V3ProbNNpi
+     pi_CombDLLK
+     pi_CombDLLp
+     pi_V2ProbNNK
+     pi_V2ProbNNp
+     pi_V2ProbNNpi
+     pi_V3ProbNNK
+     pi_V3ProbNNp
+     pi_V3ProbNNpi
+  Available PID configs for Run2/sim09 are: 
+     K_CombDLLK_Brunel
+     K_CombDLLmu_Brunel
+     K_CombDLLp_Brunel
+     K_MC15TuneV1_ProbNNK_Brunel
+     K_MC15TuneV1_ProbNNK_Brunel_Mod2
+     K_MC15TuneV1_ProbNNmu_Brunel
+     K_MC15TuneV1_ProbNNp_Brunel
+     K_MC15TuneV1_ProbNNpi_Brunel
+     e_CombDLLe_Stripping
+     e_MC15TuneV1_ProbNNK_Stripping
+     e_MC15TuneV1_ProbNNe_Stripping
+     e_MC15TuneV1_ProbNNpi_Stripping
+     mu_CombDLLmu_Brunel
+     mu_CombDLLmu_IsMuon_Brunel
+     mu_CombDLLmu_IsMuon_Brunel_NoPt
+     mu_MC15TuneV1_ProbNNmu_Brunel
+     mu_MC15TuneV1_ProbNNpi_Brunel
+
+
+     p_CombDLLK_Brunel
+     p_CombDLLp_Brunel
+     
+     p_LbLcPi_MC15TuneV1_ProbNNK_Brunel
+     p_LbLcPi_MC15TuneV1_ProbNNp_Brunel
+     p_LbLcPi_MC15TuneV1_ProbNNpi_Brunel
+
+
+     pi_CombDLLK_Brunel
+     pi_CombDLLmu_Brunel
+     pi_CombDLLp_Brunel
+     pi_MC15TuneV1_ProbNNK_Brunel
+     pi_MC15TueneV1_ProbNNmu_Brunel
+     pi_MC15TuneV1_ProbNNp_Brunel
+     pi_MC15TuneV1_ProbNNpi_Brunel
+     pi_MC15TuneV1_ProbNNpi_Brunel_Mod2
