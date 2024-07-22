@@ -3,7 +3,7 @@
 Use correct samples to do PID calibration automatically according to the TRUEID of the particles.
 
 The following branches should exists in the tree:
-1. <track name>_<TRUEID>
+1. <<track name>>_<<TRUEID>>
 2. <nTracks>
 3. <track name>_<P>
 4. <track name>_<PT>
