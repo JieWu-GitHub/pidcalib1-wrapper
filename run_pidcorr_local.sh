@@ -3,7 +3,7 @@
  # @Author       : Jie Wu j.wu@cern.ch
  # @Date         : 2024-07-22 05:34:04 +0200
  # @LastEditors  : Jie Wu j.wu@cern.ch
- # @LastEditTime : 2024-07-23 14:41:38 +0200
+ # @LastEditTime : 2024-07-23 14:46:53 +0200
  # @FilePath     : run_pidcorr_local.sh
  # @Description  : 
  # 
@@ -14,12 +14,12 @@
 
 
 mode=MC_Bs2JpsiKstar
-year=2011
+year=2018
 pol=MagDown
 
 
 
-input_file=test/mc_ppimumu_${year}_${pol}.root
+input_file=test/test_Bd2JpsiKstar_${year}_${pol}.root
 input_tree_name=DecayTree
 
 

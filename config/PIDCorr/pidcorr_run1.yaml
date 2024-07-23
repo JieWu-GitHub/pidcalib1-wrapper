@@ -39,8 +39,8 @@ JKpi: &JKpi
 
 ##########################################
 MC_Bs2JpsiKstar:
-    # muplus:
-    #         'ProbNNmu'  : 'ProbNNmu'
+    muplus:
+            'ProbNNmu'  : 'ProbNNmu'
 
     # piplus: 
     #     'ProbNNk'   : 'ProbNNk'
@@ -66,8 +66,8 @@ MC_Bs2JpsiKstar:
     #     'PIDmu'     : 'PIDmu'
 
 
-     pi:
-        'ProbNNmu'  : 'ProbNNmu'
+    #  pi:
+    #     'ProbNNmu'  : 'ProbNNmu'
         # 'ProbNNpi'  : 'ProbNNpi'
         # 'ProbNNk'   : 'ProbNNk'
         # 'ProbNNp'   : 'ProbNNp'
