@@ -2,7 +2,7 @@
 Author       : Martin Andersson and Jie Wu j.wu@cern.ch and 
 Date         : 2024-07-20 16:21:32 +0200
 LastEditors  : Jie Wu j.wu@cern.ch
-LastEditTime : 2024-07-23 11:30:54 +0200
+LastEditTime : 2024-07-23 12:47:05 +0200
 FilePath     : PIDCorr_git_edit.py
 Description  : 
 
@@ -274,6 +274,8 @@ def run_pid_corr(
         elif run == 'run2':
             Config = ConfigRun2
 
+    localrootdir = '/EOS/lhcb/wg/PID/PIDGen'
+
     # Read the input tree
     if isinstance(intree, TTree):
         tree = intree
@@ -353,6 +355,10 @@ def run_pid_corr(
             continue
         # 2) Check if the datapdf exists
         datapdf = Config.eosrootdir + "/" + samples[run][particle_PIDconfKey] + "/" + dataset + "_" + variant + ".root"
+        if os.path.exists(localrootdir):  # Check if the local directory exists, if not use eosrootdir
+            _datapdf_path_list = datapdf.split('/lhcb/wg/PID/PIDGen')
+            datapdf = localrootdir + _datapdf_path_list[-1]
+
         if check_file_existence(datapdf):
             __configs, phsp, __minpid, __pidmin, __pidmax, __transform_forward, __transform_backward = get_settings_from_sample(samples[run][f'{particle_name}_{PIDconfKey}'], run, dataset, variant)
             datakdes[particle_name] = BinnedDensity("KDEPDF", phsp, datapdf)
@@ -371,8 +377,14 @@ def run_pid_corr(
             if calibOption == "PIDCorr":
 
                 particle_PIDconfKey = f'{particle_name}_{PIDconfKey}'
+
                 # Check if the simpdf exists
-                simpdf = ConfigMC.eosrootdir + "/" + samples[run][particle_PIDconfKey] + "/" + dataset + "_" + variant + ".root"
+                simpdf = Config.eosrootdir + "/" + samples[run][particle_PIDconfKey] + "/" + dataset + "_" + variant + ".root"
+
+                if os.path.exists(localrootdir):  # Check if the local directory exists, if not use eosrootdir
+                    _simpdf_path_list = datapdf.split('/lhcb/wg/PID/PIDGen')
+                    simpdf = localrootdir + _simpdf_path_list[-1]
+
                 if check_file_existence(simpdf):
                     __configs, phsp, __minpid, __pidmin, __pidmax, __transform_forward, __transform_backward = get_settings_from_sample(
                         samples[run][f'{particle_name}_{PIDconfKey}'], run, dataset, variant
@@ -615,13 +627,13 @@ def run_pid_corr(
 def get_settings_from_sample(sample, run, dataset, variant, minpid=None):
     if run == 'run1':
         # print("INFO: Getting Run1 settings")
-        calibfilename = ConfigRun1.eosrootdir + "/" + sample + "/" + "%s_%s.root" % (dataset, variant)
+        # calibfilename = ConfigRun1.eosrootdir + "/" + sample + "/" + "%s_%s.root" % (dataset, variant)
         transform_forward = ConfigRun1.configs[sample]['transform_forward']
         transform_backward = ConfigRun1.configs[sample]['transform_backward']
         configs = ConfigRun1.configs
     elif run == 'run2':
         # print("INFO: Getting Run2 settings")
-        calibfilename = ConfigRun2.eosrootdir + "/" + sample + "/" + "%s_%s.root" % (dataset, variant)
+        # calibfilename = ConfigRun2.eosrootdir + "/" + sample + "/" + "%s_%s.root" % (dataset, variant)
         configs = ConfigRun2.configs()
         if 'gamma' in list(configs[sample].keys()):
             gamma = configs[sample]['gamma']
