@@ -39,17 +39,39 @@ JKpi: &JKpi
 
 ##########################################
 MC_Bs2JpsiKstar:
-    muplus:
-            'ProbNNmu'  : 'ProbNNmu'
+    # muplus:
+    #         'ProbNNmu'  : 'ProbNNmu'
 
-    piplus: 
-        'ProbNNk'   : 'ProbNNk'
-        'ProbNNpi'  : 'ProbNNpi'
-        'ProbNNp'   : 'ProbNNp'
+    # piplus: 
+    #     'ProbNNk'   : 'ProbNNk'
+    #     'ProbNNpi'  : 'ProbNNpi'
+    #     'ProbNNp'   : 'ProbNNp'
 
-        'PIDK'      : 'PIDK'
-        'PIDp'      : 'PIDp'
-        'PIDmu'     : 'PIDmu'
+    #     'PIDK'      : 'PIDK'
+    #     'PIDp'      : 'PIDp'
+    #     'PIDmu'     : 'PIDmu'
 
     # <<: *track_muon
     # <<: *JKpi
+
+
+    # mup:
+    #     'ProbNNmu'  : 'ProbNNmu'
+    #     'ProbNNpi'  : 'ProbNNpi'
+    #     'ProbNNk'   : 'ProbNNk'
+    #     'ProbNNp'   : 'ProbNNp'
+
+    #     'PIDK'      : 'PIDK'
+    #     'PIDp'      : 'PIDp'
+    #     'PIDmu'     : 'PIDmu'
+
+
+     pi:
+        'ProbNNmu'  : 'ProbNNmu'
+        # 'ProbNNpi'  : 'ProbNNpi'
+        # 'ProbNNk'   : 'ProbNNk'
+        # 'ProbNNp'   : 'ProbNNp'
+
+        # 'PIDK'      : 'PIDK'
+        # 'PIDp'      : 'PIDp'
+        # 'PIDmu'     : 'PIDmu'

@@ -2,7 +2,7 @@
 Author       : Jie Wu j.wu@cern.ch
 Date         : 2024-07-22 05:33:10 +0200
 LastEditors  : Jie Wu j.wu@cern.ch
-LastEditTime : 2024-07-22 11:12:27 +0200
+LastEditTime : 2024-07-23 11:39:35 +0200
 FilePath     : PIDCorr.py
 Description  : 
 
@@ -35,10 +35,16 @@ def argument_parser():
     parser.add_argument('--config-file', help='Path to the PID config sample definition file')
     parser.add_argument('--tmp1', help='Temporary file to apply PID 1st step')
     parser.add_argument('--tmp2', help='Temporary file to apply PID 2nd step')
+    parser.add_argument(
+        '--output-var-suffix',
+        default='PIDCalib',
+        help='Suffix for output PIDCalib variables, like if PIDCalib is the suffix, the output variable will be like "mu_PIDmu_PIDCalib" for muon PIDmu calibration',
+    )
+
     return parser
 
 
-def PIDCorr(input_file, input_tree_name, output_file, data_set, mode, simversion, tracks_file, config_file, tmp1, tmp2):
+def PIDCorr(input_file, input_tree_name, output_file, data_set, mode, simversion, tracks_file, config_file, tmp1, tmp2, output_var_suffix):
     ## START OF CONFIG
     # Read comments and check vars
     # at least until end of config section
@@ -113,7 +119,7 @@ def PIDCorr(input_file, input_tree_name, output_file, data_set, mode, simversion
                     sys.exit(1)
                 command += " -n %s" % ntrvar
                 command += " -t %s" % treename
-                command += " -p %s_%s_PIDCorr" % (track, var)
+                command += " -p %s_%s_%s" % (track, var, output_var_suffix)
                 command += " -s %s_%s" % (track, oldpidvar)
                 command += " -c %s" % config_file
                 command += " -d %s" % dataset

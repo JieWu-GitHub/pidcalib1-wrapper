@@ -3,7 +3,7 @@
  # @Author       : Jie Wu j.wu@cern.ch
  # @Date         : 2024-07-22 05:34:04 +0200
  # @LastEditors  : Jie Wu j.wu@cern.ch
- # @LastEditTime : 2024-07-22 11:25:06 +0200
+ # @LastEditTime : 2024-07-23 11:44:27 +0200
  # @FilePath     : run_pidgen_local.sh
  # @Description  : 
  # 
@@ -24,6 +24,7 @@ input_tree_name=DecayTree
 resamp_var=${mode}
 output_file="test/output/PIDCorr/${year}/${pol}/${mode}.root" 
 
+output_var_suffix="PIDGen"
 
 
 # To determine the yaml with resample names 
@@ -60,7 +61,8 @@ lb-run -c best --platform=x86_64_v2-centos7-gcc11-opt --siteroot=/cvmfs/lhcb.cer
 --tracks-file ${tracks_file}        \
 --config-file ${config_file}        \
 --tmp1 "test/output/PIDCorr/tmpc/${year}/${pol}/${mode}_tmp1.root"  \
---tmp2 "test/output/PIDCorr/tmpc/${year}/${pol}/${mode}_tmp2.root"
+--tmp2 "test/output/PIDCorr/tmpc/${year}/${pol}/${mode}_tmp2.root"  \
+--output-var-suffix ${output_var_suffix}
 
 
 

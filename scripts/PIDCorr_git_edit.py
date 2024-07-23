@@ -2,7 +2,7 @@
 Author       : Martin Andersson and Jie Wu j.wu@cern.ch and 
 Date         : 2024-07-20 16:21:32 +0200
 LastEditors  : Jie Wu j.wu@cern.ch
-LastEditTime : 2024-07-22 19:06:05 +0200
+LastEditTime : 2024-07-23 11:30:54 +0200
 FilePath     : PIDCorr_git_edit.py
 Description  : 
 
@@ -386,6 +386,11 @@ def run_pid_corr(
                     else:
                         print(f"INFO: No simulation, so only set datakde for particle (do resampling instead): {particle_name}")
 
+        # Check simkdes is not empty
+        if not simkdes:
+            print("ERROR: PIDCorr is called but no pdfs for simulation is loaded. Please check the MC pdf samples in the configuration file, or use PIDGen instead.")
+            exit(1)
+
     # -------------------------
     counter = COUNTERS()
 
@@ -412,8 +417,7 @@ def run_pid_corr(
             point[2] = eval(eta_code)
         # -------------------------
         TRUEID = eval(trueid)
-        true_particle = confdict[str(abs(TRUEID))]
-        sample = samples[run][f'{true_particle}_{PIDconfKey}']
+        true_particle = confdict.get(str(abs(TRUEID)), 'unknown')
 
         if true_particle == "mu":
             counter.n_mu += 1
@@ -430,6 +434,8 @@ def run_pid_corr(
 
         # Check if the particle_PIDconfKey exists in the config file
         if true_particle in datakdes:
+
+            sample = samples[run][f'{true_particle}_{PIDconfKey}']
 
             datakde = datakdes[true_particle]
             if resample_corr:
@@ -553,7 +559,10 @@ def run_pid_corr(
             for obj in fillobjs:
                 obj.Fill()
 
-            print(f"INFO: Particle {true_particle} is not corrected or resampled because the key do not exist in the configuration file.\n")
+            if counter.count % 1000 == 0:
+                print("Event %d/%d : Pt=%f, Eta=%f, Ntr=%f, true_particle=%s" % (counter.count, nentries, point[1], point[2], point[3], true_particle))
+
+            # print(f"INFO: Particle {true_particle} is not corrected or resampled because the key do not exist in the configuration file.\n")
 
         counter.count += 1
 

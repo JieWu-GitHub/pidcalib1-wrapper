@@ -3,7 +3,7 @@
  # @Author       : Jie Wu j.wu@cern.ch
  # @Date         : 2024-07-22 05:34:04 +0200
  # @LastEditors  : Jie Wu j.wu@cern.ch
- # @LastEditTime : 2024-07-22 15:53:52 +0200
+ # @LastEditTime : 2024-07-23 11:44:08 +0200
  # @FilePath     : run_pidcorr_local.sh
  # @Description  : 
  # 
@@ -15,18 +15,21 @@
 
 mode=MC_Bs2JpsiKstar
 year=2011
-pol=MagUp
+pol=MagDown
 
-input_file=/home/uzh/wjie/workspace/Bs2JpsiKst-fullRun2/PIDCalib_developing/test/test_Bd2JpsiKstar_${year}_${pol}.root
+
+
+# input_file=/home/uzh/wjie/workspace/Bs2JpsiKst-fullRun2/PIDCalib_developing/test/test_Bd2JpsiKstar_${year}_${pol}.root
+input_file=/home/uzh/wjie/workspace/Bs2JpsiKst-fullRun2/PIDCalib_developing/test/mc_ppimumu_${year}_${pol}.root
 input_tree_name=DecayTree
 
 
 
 # resamp_var=Pi_PIDmu
 resamp_var=${mode}
-
 output_file="test/output/PIDCorr/${year}/${pol}/${mode}.root" 
 
+output_var_suffix="PIDCorr"
 
 
 # To determine the yaml with resample names 
@@ -56,7 +59,9 @@ lb-run -c best --platform=x86_64_v2-centos7-gcc11-opt --siteroot=/cvmfs/lhcb.cer
 --tracks-file ${tracks_file}        \
 --config-file ${config_file}        \
 --tmp1 "test/output/PIDCorr/tmpc/${year}/${pol}/${mode}_tmp1.root"  \
---tmp2 "test/output/PIDCorr/tmpc/${year}/${pol}/${mode}_tmp2.root"
+--tmp2 "test/output/PIDCorr/tmpc/${year}/${pol}/${mode}_tmp2.root"  \
+--output-var-suffix ${output_var_suffix}
+
 
 
 
