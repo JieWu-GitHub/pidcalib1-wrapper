@@ -3,7 +3,7 @@
  # @Author       : Jie Wu j.wu@cern.ch
  # @Date         : 2024-07-22 05:34:04 +0200
  # @LastEditors  : Jie Wu j.wu@cern.ch
- # @LastEditTime : 2024-07-23 11:44:08 +0200
+ # @LastEditTime : 2024-07-23 14:41:38 +0200
  # @FilePath     : run_pidcorr_local.sh
  # @Description  : 
  # 
@@ -19,8 +19,7 @@ pol=MagDown
 
 
 
-# input_file=/home/uzh/wjie/workspace/Bs2JpsiKst-fullRun2/PIDCalib_developing/test/test_Bd2JpsiKstar_${year}_${pol}.root
-input_file=/home/uzh/wjie/workspace/Bs2JpsiKst-fullRun2/PIDCalib_developing/test/mc_ppimumu_${year}_${pol}.root
+input_file=test/mc_ppimumu_${year}_${pol}.root
 input_tree_name=DecayTree
 
 
@@ -48,8 +47,9 @@ config_file="config/PIDCorr/config_samples_PIDCorr.yaml"
 echo "Using yaml file for run: ${run}"
 
 
-#lb-run -c best --siteroot=/cvmfs/lhcb.cern.ch/lib Urania/v10r1 python PIDCorr.py \
-lb-run -c best --platform=x86_64_v2-centos7-gcc11-opt --siteroot=/cvmfs/lhcb.cern.ch/lib Urania/v10r1 python -u scripts/PIDCorr.py \
+
+################# COMMAND #################
+lb-run --bind=/DATA:/DATA --bind=/EOS:/EOS -c best --platform=x86_64_v2-centos7-gcc11-opt --siteroot=/cvmfs/lhcb.cern.ch/lib Urania/v10r1 python -u scripts/PIDCorr.py \
 --input-file "${input_file}" \
 --input-tree-name "${input_tree_name}"  \
 --output-file  "${output_file}"   \
