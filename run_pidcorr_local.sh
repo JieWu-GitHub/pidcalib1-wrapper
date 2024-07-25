@@ -14,12 +14,13 @@
 
 
 mode=MC_Bs2JpsiKstar
-year=2018
-pol=MagDown
+year=2016
+pol=MagUp
 
 
 
 input_file=test/test_Bd2JpsiKstar_${year}_${pol}.root
+input_file=test/match_ppimumu_${year}_${pol}_sizeReduced.root
 input_tree_name=DecayTree
 
 

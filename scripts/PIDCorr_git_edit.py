@@ -297,6 +297,7 @@ def run_pid_corr(
     newtree, outfile = make_output_tree(tree, noclone, outfilename, outtree)
 
     branches = [newtree.Branch(pidvar, addressof(s, "newpid"), f'{pidvar}/D')]
+    addcalibstat = True
     if addcalibstat:
         branches.append(newtree.Branch(f"{pidvar}_calibstat", addressof(s, "hint"), f'{pidvar}_calibstat/D'))
         branches.append(newtree.Branch(f"{pidvar}_mcstat", addressof(s, "hintmc"), f'{pidvar}_mcstat/D')) if calibOption == "PIDCorr" else None
@@ -362,7 +363,7 @@ def run_pid_corr(
         if check_file_existence(datapdf):
             __configs, phsp, __minpid, __pidmin, __pidmax, __transform_forward, __transform_backward = get_settings_from_sample(samples[run][f'{particle_name}_{PIDconfKey}'], run, dataset, variant)
             datakdes[particle_name] = BinnedDensity("KDEPDF", phsp, datapdf)
-            print(f"INFO: Set datakde for particle: {particle_name}")
+            print(f"INFO: Set datakde for particle: {particle_name}, path to pdf: {datapdf}")
         else:
             print(f"INFO: Combination of {particle_name} and {PIDconfKey} is not resampled because the file to the pdf do not exists: {datapdf}.\n")
 
@@ -379,10 +380,10 @@ def run_pid_corr(
                 particle_PIDconfKey = f'{particle_name}_{PIDconfKey}'
 
                 # Check if the simpdf exists
-                simpdf = Config.eosrootdir + "/" + samples[run][particle_PIDconfKey] + "/" + dataset + "_" + variant + ".root"
+                simpdf = ConfigMC.eosrootdir + "/" + samples[run][particle_PIDconfKey] + "/" + dataset + "_" + variant + ".root"
 
                 if os.path.exists(localrootdir):  # Check if the local directory exists, if not use eosrootdir
-                    _simpdf_path_list = datapdf.split('/lhcb/wg/PID/PIDGen')
+                    _simpdf_path_list = simpdf.split('/lhcb/wg/PID/PIDGen')
                     simpdf = localrootdir + _simpdf_path_list[-1]
 
                 if check_file_existence(simpdf):
@@ -390,7 +391,7 @@ def run_pid_corr(
                         samples[run][f'{particle_name}_{PIDconfKey}'], run, dataset, variant
                     )
                     simkdes[particle_name] = BinnedDensity("KDEPDF", phsp, simpdf)
-                    print("INFO: Set datakde and simkde for particle:", particle_name)
+                    print(f"INFO: Set simkde for particle: {particle_name}, path to pdf: {simpdf}")
                 else:
                     if calibStrict:
                         print(f'ERROR: Combination of {particle_name} and {PIDconfKey} is not corrected or resampled because the file to the pdf do not exists: {simpdf}.')
@@ -455,7 +456,6 @@ def run_pid_corr(
                     simkde = simkdes[true_particle]
                 else:
                     resample_corr = False
-
                     resample_gen = True
 
             __configs, __phsp, minpid, pidmin, pidmax, transform_forward, transform_backward = get_settings_from_sample(sample, run, dataset, variant)
@@ -480,7 +480,8 @@ def run_pid_corr(
             point[0] = (pidmin + pidmax) / 2.0
             # -------------------------
 
-            # print point[0], point[1], point[2], point[3]
+            # print(point[0], point[1], point[2], point[3])
+            # exit(1)
 
             hdata.Reset()
             hsim.Reset()

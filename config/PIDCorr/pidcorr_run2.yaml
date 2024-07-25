@@ -39,9 +39,17 @@ JKpi: &JKpi
 
 ##########################################
 MC_Bs2JpsiKstar:
-    muplus:
-            'ProbNNmu'  : 'ProbNNmu'
+    # mup:
+    #     'ProbNNmu'  : 'ProbNNmu'
+    #     'PIDmu'     : 'PIDmu'
+    # mum: 
+    #     'ProbNNmu'  : 'ProbNNmu'
+    #     'PIDmu'     : 'PIDmu'
 
+    pi: 
+        'ProbNNk'   : 'ProbNNk'
+        # 'ProbNNpi'  : 'ProbNNpi'
+        'PIDK'      : 'PIDK'
 
     # <<: *track_muon
     # <<: *JKpi
