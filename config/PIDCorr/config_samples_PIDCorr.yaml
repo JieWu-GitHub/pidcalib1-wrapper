@@ -1,58 +1,58 @@
-option: 'PIDCorr'
+option: "PIDCorr"
 # If True, you will get error if either data or MC template is missing
 # If False, then when MC template is missing, the PIDGen will be called based on the data template
-strict: False 
+# strict: False
+strict: True
 
 samples:
     run1:
         # muon
-        mu_ProbNNpi: 'mu_V3ProbNNpi'
-        mu_ProbNNmu: 'mu_V3ProbNNmu'
-        mu_PIDmu: 'mu_CombDLLmu'
+        mu_ProbNNpi: "mu_V3ProbNNpi"
+        mu_ProbNNmu: "mu_V3ProbNNmu"
+        mu_PIDmu: "mu_CombDLLmu"
         # kaon
-        K_ProbNNk: 'K_V3ProbNNK'
-        K_ProbNNpi: 'K_V3ProbNNpi'
-        K_ProbNNp: 'K_V3ProbNNp'
-        K_PIDK: 'K_CombDLLK'
-        K_PIDp: 'K_CombDLLp'
-        K_PIDmu: 'K_CombDLLmu'
+        K_ProbNNk: "K_V3ProbNNK"
+        K_ProbNNpi: "K_V3ProbNNpi"
+        K_ProbNNp: "K_V3ProbNNp"
+        K_PIDK: "K_CombDLLK"
+        K_PIDp: "K_CombDLLp"
+        K_PIDmu: "K_CombDLLmu"
         # pion
-        pi_ProbNNk: 'pi_V3ProbNNK'
-        pi_ProbNNpi: 'pi_V3ProbNNpi'
-        pi_ProbNNp: 'pi_V3ProbNNp'
-        pi_PIDK: 'pi_CombDLLK'
-        pi_PIDp: 'pi_CombDLLp'
-        pi_PIDmu: 'pi_CombDLLmu'
+        pi_ProbNNk: "pi_V3ProbNNK"
+        pi_ProbNNpi: "pi_V3ProbNNpi"
+        pi_ProbNNp: "pi_V3ProbNNp"
+        pi_PIDK: "pi_CombDLLK"
+        pi_PIDp: "pi_CombDLLp"
+        pi_PIDmu: "pi_CombDLLmu"
         # proton
-        p_ProbNNk: 'p_V3ProbNNK'
-        p_ProbNNpi: 'p_V3ProbNNpi'
-        p_ProbNNp: 'p_V3ProbNNp'
-        p_PIDK: 'p_CombDLLK'
-        p_PIDp: 'p_CombDLLp'
-
+        p_ProbNNk: "p_V3ProbNNK"
+        p_ProbNNpi: "p_V3ProbNNpi"
+        p_ProbNNp: "p_V3ProbNNp"
+        p_PIDK: "p_CombDLLK"
+        p_PIDp: "p_CombDLLp"
 
     run2:
         # muon
-        mu_ProbNNpi: 'mu_MC15TuneV1_ProbNNpi_Brunel'
-        mu_ProbNNmu: 'mu_MC15TuneV1_ProbNNmu_Brunel'
-        mu_PIDmu: 'mu_CombDLLmu_IsMuon_Brunel_NoPt'
+        mu_ProbNNpi: "mu_MC15TuneV1_ProbNNpi_Brunel"
+        mu_ProbNNmu: "mu_MC15TuneV1_ProbNNmu_Brunel"
+        mu_PIDmu: "mu_CombDLLmu_IsMuon_Brunel_NoPt"
         # kaon
-        K_ProbNNk: 'K_MC15TuneV1_ProbNNK_Brunel_Mod2'
-        K_ProbNNpi: 'K_MC15TuneV1_ProbNNpi_Brunel'
-        K_ProbNNp: 'K_MC15TuneV1_ProbNNp_Brunel'
-        K_PIDK: 'K_CombDLLK_Brunel'
-        K_PIDp: 'K_CombDLLp_Brunel'
-        K_PIDmu: 'K_CombDLLmu_Brunel'
+        K_ProbNNk: "K_MC15TuneV1_ProbNNK_Brunel_Mod2"
+        K_ProbNNpi: "K_MC15TuneV1_ProbNNpi_Brunel"
+        K_ProbNNp: "K_MC15TuneV1_ProbNNp_Brunel"
+        K_PIDK: "K_CombDLLK_Brunel"
+        K_PIDp: "K_CombDLLp_Brunel"
+        K_PIDmu: "K_CombDLLmu_Brunel"
         # pion
-        pi_ProbNNk: 'pi_MC15TuneV1_ProbNNK_Brunel'
-        pi_ProbNNpi: 'pi_MC15TuneV1_ProbNNpi_Brunel_Mod2'
-        pi_ProbNNp: 'pi_MC15TuneV1_ProbNNp_Brunel'
-        pi_PIDK: 'pi_CombDLLK_Brunel'
-        pi_PIDp: 'pi_CombDLLp_Brunel'
-        pi_PIDmu: 'pi_CombDLLmu_Brunel'
+        pi_ProbNNk: "pi_MC15TuneV1_ProbNNK_Brunel"
+        pi_ProbNNpi: "pi_MC15TuneV1_ProbNNpi_Brunel_Mod2"
+        pi_ProbNNp: "pi_MC15TuneV1_ProbNNp_Brunel"
+        pi_PIDK: "pi_CombDLLK_Brunel"
+        pi_PIDp: "pi_CombDLLp_Brunel"
+        pi_PIDmu: "pi_CombDLLmu_Brunel"
         # proton
-        p_ProbNNk: 'p_LbLcPi_MC15TuneV1_ProbNNK_Brunel'
-        p_ProbNNpi: 'p_LbLcPi_MC15TuneV1_ProbNNpi_Brunel'
-        p_ProbNNp: 'p_LbLcPi_MC15TuneV1_ProbNNp_Brunel'
-        p_PIDK: 'p_CombDLLK_Brunel'
-        p_PIDp: 'p_CombDLLp_Brunel'
+        p_ProbNNk: "p_LbLcPi_MC15TuneV1_ProbNNK_Brunel"
+        p_ProbNNpi: "p_LbLcPi_MC15TuneV1_ProbNNpi_Brunel"
+        p_ProbNNp: "p_LbLcPi_MC15TuneV1_ProbNNp_Brunel"
+        p_PIDK: "p_CombDLLK_Brunel"
+        p_PIDp: "p_CombDLLp_Brunel"

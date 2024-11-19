@@ -2,7 +2,7 @@
 Author       : Jie Wu j.wu@cern.ch
 Date         : 2024-07-22 05:33:10 +0200
 LastEditors  : Jie Wu j.wu@cern.ch
-LastEditTime : 2024-07-23 11:39:35 +0200
+LastEditTime : 2024-11-06 07:55:05 +0100
 FilePath     : PIDCorr.py
 Description  : 
 
@@ -28,6 +28,7 @@ def argument_parser():
     parser.add_argument('--input-file', help='Path to the input file')
     parser.add_argument('--input-tree-name', help='Name of the tree')
     parser.add_argument('--output-file', help='Output ROOT file')
+    parser.add_argument('--output-tree', help='Name of the output tree')
     parser.add_argument('--data-set', help='Mag and Year, for example MagUp_2016')
     parser.add_argument('--mode', help='Name of the selection in yaml')
     parser.add_argument('--simversion', help='Simversion, where to read samples from')
@@ -40,11 +41,30 @@ def argument_parser():
         default='PIDCalib',
         help='Suffix for output PIDCalib variables, like if PIDCalib is the suffix, the output variable will be like "mu_PIDmu_PIDCalib" for muon PIDmu calibration',
     )
+    parser.add_argument(
+        '--local-root-dir',
+        default=None,
+        help='Path to the local directory where the ROOT files are stored',
+    )
 
     return parser
 
 
-def PIDCorr(input_file, input_tree_name, output_file, data_set, mode, simversion, tracks_file, config_file, tmp1, tmp2, output_var_suffix):
+def PIDCorr(
+    input_file,
+    input_tree_name,
+    output_file,
+    output_tree,
+    data_set,
+    mode,
+    simversion,
+    tracks_file,
+    config_file,
+    tmp1,
+    tmp2,
+    output_var_suffix,
+    local_root_dir,
+):
     ## START OF CONFIG
     # Read comments and check vars
     # at least until end of config section
@@ -95,8 +115,7 @@ def PIDCorr(input_file, input_tree_name, output_file, data_set, mode, simversion
 
     rand_string = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(10))  # get 10 random chars for temp_file prefix
 
-    output_tree = input_tree.split("/")[-1]
-    treename = input_tree
+    _input_tree = input_tree
 
     for input_file, output_file, dataset in files:
         tmpinfile = input_file
@@ -108,7 +127,7 @@ def PIDCorr(input_file, input_tree_name, output_file, data_set, mode, simversion
 
                 # command = "python $PIDPERFSCRIPTSROOT/scripts/python/PIDGenUser/PIDCorr.py"
                 # command = "python PIDCorr_git.py" #Copied from git, to make local edits
-                command = "python scripts/PIDCorr_git_edit.py"  # Copied from git, to make local edits
+                command = "python scripts/PIDCorr_edit.py"  # Copied from git, to make local edits
                 command += " -m %s_%s" % (track, ptvar)
                 if etavar:
                     command += " -e %s_%s" % (track, etavar)
@@ -117,17 +136,19 @@ def PIDCorr(input_file, input_tree_name, output_file, data_set, mode, simversion
                 else:
                     print('Specify either ETA or P branch name per track')
                     sys.exit(1)
-                command += " -n %s" % ntrvar
-                command += " -t %s" % treename
-                command += " -p %s_%s_%s" % (track, var, output_var_suffix)
-                command += " -s %s_%s" % (track, oldpidvar)
-                command += " -c %s" % config_file
-                command += " -d %s" % dataset
-                command += " -i %s" % tmpinfile
-                command += " -o %s" % tmpoutfile
-                command += " -S %s" % simversion
+                command += " --ntrvar %s" % ntrvar
+                command += " --tree %s" % _input_tree
+                command += " --pidvar %s_%s_%s" % (track, var, output_var_suffix)
+                command += " --simpidvar %s_%s" % (track, oldpidvar)
+                command += " --config %s" % config_file
+                command += " --dataset %s" % dataset
+                command += " --input %s" % tmpinfile
+                command += " --output %s" % tmpoutfile
+                command += " --simversion %s" % simversion
+                command += " --outtree %s" % output_tree
+                command += " --localrootdir %s" % local_root_dir
 
-                treename = output_tree
+                _input_tree = output_tree
                 tmpinfile = tmpoutfile
                 if tmpoutfile == tmp1:
                     tmpoutfile = tmp2
@@ -139,7 +160,10 @@ def PIDCorr(input_file, input_tree_name, output_file, data_set, mode, simversion
                 os.makedirs(os.path.dirname(tmpoutfile), exist_ok=True)
 
                 print(command)
-                os.system(command)
+                exit_code = os.system(command)
+                if exit_code != 0:
+                    print(f"ERROR::Command failed with exit code {exit_code}")
+                    sys.exit(exit_code)
 
         # Make directory if it doesn't exist
         os.makedirs(os.path.dirname(output_file), exist_ok=True)

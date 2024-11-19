@@ -2,7 +2,7 @@
  * @Author       : Jie Wu j.wu@cern.ch
  * @Date         : 2024-07-19 14:13:59 +0200
  * @LastEditors  : Jie Wu j.wu@cern.ch
- * @LastEditTime : 2024-07-23 14:13:59 +0200
+ * @LastEditTime : 2024-11-06 08:26:47 +0100
  * @FilePath     : README.md
  * @Description  : 
  * 
@@ -10,7 +10,7 @@
 -->
 * PIDCalibration wrapper.
 
-Use correct samples to do PID calibration automatically according to the TRUEID of the particles.
+Use correct samples to do PID calibration automatically according to the TRUEID of the particles, based on the tool described in `https://twiki.cern.ch/twiki/bin/viewauth/LHCb/MeerkatPIDResampling`
 
 The following branches should exists in the tree:
 1. [track name]_[TRUEID]
@@ -52,3 +52,9 @@ what should I modify?
 - Modify `PIDCorr` and `PIDGen` to your needs
 
 
+
+
+The complete list of PID configurations available in Run 1 and Run 2 can be obtained by running PIDGen.py without arguments:
+$ lb-run -c best --allow-containers --siteroot=/cvmfs/lhcb.cern.ch/lib Urania/v10r1 bash
+$ python $PIDPERFSCRIPTSROOT/scripts/python/PIDGenUser/PIDGen.py
+Note that Run 1 and Run 2 PID configurations have different names! 
