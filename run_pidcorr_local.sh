@@ -17,8 +17,8 @@ mode=MC_Bs2JpsiKstar
 year=2018
 pol=MagUp
 
-# charge_suffix=""
-charge_suffix="_P"
+charge_suffix=""
+# charge_suffix="_P"
 # charge_suffix="_M"
 
 
@@ -54,9 +54,9 @@ echo "Using yaml file for calibconfig: ${calibconfig}"
 
 
 ################# COMMAND #################
-# lb-run --bind=/DATA:/DATA --bind=/EOS:/EOS -c best --platform=x86_64_v2-centos7-gcc11-opt --siteroot=/cvmfs/lhcb.cern.ch/lib Urania/v10r1 python -u scripts/PIDCorr.py \
+lb-run --bind=/DATA:/DATA --bind=/EOS:/EOS -c best --platform=x86_64_v2-centos7-gcc11-opt --siteroot=/cvmfs/lhcb.cern.ch/lib Urania/v10r1 python -u scripts/PIDCorr.py \
 # lb-run --bind=/disk:/disk -c best --allow-containers --siteroot=/cvmfs/lhcb.cern.ch/lib Urania/v10r1 python -u scripts/PIDCorr.py \
-lb-run --bind=/disk/lhcb_data/jwu:/disk/lhcb_data/jwu -c best --allow-containers --siteroot=/cvmfs/lhcb.cern.ch/lib Urania/v10r1 python -u scripts/PIDCorr.py \
+# lb-run --bind=/disk/lhcb_data/jwu:/disk/lhcb_data/jwu -c best --allow-containers --siteroot=/cvmfs/lhcb.cern.ch/lib Urania/v10r1 python -u scripts/PIDCorr.py \
 --input-file        "${input_file}" \
 --input-tree-name   "${input_tree_name}"  \
 --output-file       "${output_file}"   \
