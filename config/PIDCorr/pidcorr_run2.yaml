@@ -40,7 +40,7 @@ MC_Bs2JpsiKstar:
     #     'ProbNNmu'  : 'ProbNNmu'
     #     'PIDmu'     : 'PIDmu'
 
-    pi:
+    piplus:
         "ProbNNk": "ProbNNk"
         # 'ProbNNpi'  : 'ProbNNpi'
         "PIDK": "PIDK"
