@@ -3,47 +3,41 @@
 #       <standard PID name> : <The name of the variable used for transformation>
 # Note: The <standard PID name> should be aligned with the names in the sample configuration file, recommended to not change it.
 
-
-
 track_muon: &track_muon
     muplus:
-            'ProbNNpi'  : 'ProbNNpi'
-            'ProbNNmu'  : 'ProbNNmu'
-            'PIDmu'     : 'PIDmu'
+        "ProbNNpi": "ProbNNpi"
+        "ProbNNmu": "ProbNNmu"
+        "PIDmu": "PIDmu"
     muminus:
-            'ProbNNpi'  : 'ProbNNpi'
-            'ProbNNmu'  : 'ProbNNmu'
-            'PIDmu'     : 'PIDmu'
-
-
+        "ProbNNpi": "ProbNNpi"
+        "ProbNNmu": "ProbNNmu"
+        "PIDmu": "PIDmu"
 
 JKpi: &JKpi
-    Kminus: 
-        'ProbNNk'   : 'ProbNNk'
-        'ProbNNpi'  : 'ProbNNpi'
-        'ProbNNp'   : 'ProbNNp'
+    Kminus:
+        "ProbNNk": "ProbNNk"
+        "ProbNNpi": "ProbNNpi"
+        "ProbNNp": "ProbNNp"
 
-        'PIDK'      : 'PIDK'
-        'PIDp'      : 'PIDp'
-        'PIDmu'     : 'PIDmu'
-    piplus: 
-        'ProbNNk'   : 'ProbNNk'
-        'ProbNNpi'  : 'ProbNNpi'
-        'ProbNNp'   : 'ProbNNp'
+        "PIDK": "PIDK"
+        "PIDp": "PIDp"
+        "PIDmu": "PIDmu"
+    piplus:
+        "ProbNNk": "ProbNNk"
+        "ProbNNpi": "ProbNNpi"
+        "ProbNNp": "ProbNNp"
 
-        'PIDK'      : 'PIDK'
-        'PIDp'      : 'PIDp'
-        'PIDmu'     : 'PIDmu'
-
-
+        "PIDK": "PIDK"
+        "PIDp": "PIDp"
+        "PIDmu": "PIDmu"
 
 ##########################################
 MC_Bs2JpsiKstar:
     muplus:
-            'ProbNNmu'  : 'ProbNNmu'
+        "ProbNNmu": "ProbNNmu"
 
-    # piplus: 
-    #     'ProbNNk'   : 'ProbNNk'
+    piplus:
+        "ProbNNk": "ProbNNk"
     #     'ProbNNpi'  : 'ProbNNpi'
     #     'ProbNNp'   : 'ProbNNp'
 
@@ -53,7 +47,6 @@ MC_Bs2JpsiKstar:
 
     # <<: *track_muon
     # <<: *JKpi
-
 
     # mup:
     #     'ProbNNmu'  : 'ProbNNmu'
@@ -65,13 +58,12 @@ MC_Bs2JpsiKstar:
     #     'PIDp'      : 'PIDp'
     #     'PIDmu'     : 'PIDmu'
 
-
     #  pi:
     #     'ProbNNmu'  : 'ProbNNmu'
-        # 'ProbNNpi'  : 'ProbNNpi'
-        # 'ProbNNk'   : 'ProbNNk'
-        # 'ProbNNp'   : 'ProbNNp'
+    # 'ProbNNpi'  : 'ProbNNpi'
+    # 'ProbNNk'   : 'ProbNNk'
+    # 'ProbNNp'   : 'ProbNNp'
 
-        # 'PIDK'      : 'PIDK'
-        # 'PIDp'      : 'PIDp'
-        # 'PIDmu'     : 'PIDmu'
+    # 'PIDK'      : 'PIDK'
+    # 'PIDp'      : 'PIDp'
+    # 'PIDmu'     : 'PIDmu'

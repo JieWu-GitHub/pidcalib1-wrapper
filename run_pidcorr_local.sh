@@ -3,7 +3,7 @@
  # @Author       : Jie Wu j.wu@cern.ch
  # @Date         : 2024-07-22 05:34:04 +0200
  # @LastEditors  : Jie Wu j.wu@cern.ch
- # @LastEditTime : 2024-11-07 07:41:43 +0100
+ # @LastEditTime : 2024-11-21 03:09:35 +0100
  # @FilePath     : run_pidcorr_local.sh
  # @Description  : 
  # 
@@ -14,7 +14,7 @@
 
 
 mode=MC_Bs2JpsiKstar
-year=2018
+year=2011
 pol=MagUp
 
 charge_suffix=""
@@ -41,8 +41,11 @@ elif [[ $year == "2011" || $year == "2012" ]]; then
     calibconfig="sim09" # sim08, sim09 for run1
 fi
 
-tracks_file="config/PIDCorr_PlusMinus/pidcorr_${calibconfig}.yaml"
-config_file="config/PIDCorr_PlusMinus/config_samples_PIDCorr.yaml"
+# tracks_file="config/PIDCorr_PlusMinus/pidcorr_${calibconfig}.yaml"
+# config_file="config/PIDCorr_PlusMinus/config_samples_PIDCorr.yaml"
+
+tracks_file="config/PIDCorr/pidcorr_${calibconfig}.yaml"
+config_file="config/PIDCorr/config_samples_PIDCorr.yaml"
 
 # local_root_dir="/disk/lhcb_data/jwu/Bs2JpsiKstar/PIDCalibSamples/eos/lhcb/wg/PID/PIDGen"
 # local_root_dir="/home/uzh/wjie/workspace/Bs2JpsiKst-fullRun2/PID_asymmetry/PIDCalib/PIDPerfScripts/python/output/eos/lhcb/wg/PID/PIDGen"
@@ -61,7 +64,7 @@ echo "Using yaml file for calibconfig: ${calibconfig}"
 
 #lb-run -c best --allow-containers --siteroot=/cvmfs/lhcb.cern.ch/lib Urania/v10r1 python -u scripts/PIDCorr.py \
 
-lb-run --bind=/DATA:/DATA --bind=/EOS:/EOS -c best --platform=x86_64_v2-centos7-gcc11-opt --siteroot=/cvmfs/lhcb.cern.ch/lib Urania/v10r1 python -u scripts/PIDCorr.py \
+lb-run  -c best --platform=x86_64_v2-centos7-gcc11-opt --siteroot=/cvmfs/lhcb.cern.ch/lib Urania/v10r1 python -u scripts/PIDCorr.py \
 --input-file        "${input_file}" \
 --input-tree-name   "${input_tree_name}"  \
 --output-file       "${output_file}"   \

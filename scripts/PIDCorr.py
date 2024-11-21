@@ -2,7 +2,7 @@
 Author       : Jie Wu j.wu@cern.ch
 Date         : 2024-07-22 05:33:10 +0200
 LastEditors  : Jie Wu j.wu@cern.ch
-LastEditTime : 2024-11-06 07:55:05 +0100
+LastEditTime : 2024-11-21 03:07:37 +0100
 FilePath     : PIDCorr.py
 Description  : 
 
@@ -13,12 +13,14 @@ import os
 import sys
 import yaml
 import argparse
+from pprint import pprint
 
 
 def read_from_yaml(mode, selection_files):
     selection_dict = {}
-    for file in selection_files:
-        with open(file, 'r') as stream:
+    for f in selection_files:
+        print(f"Reading from {f}")
+        with open(f, 'r') as stream:
             selection_dict.update(yaml.safe_load(stream)[mode])
     return selection_dict
 
@@ -101,6 +103,8 @@ def PIDCorr(
     #     {pid_config} is the string describing the PID configuration.
     # Run PIDCorr.py without arguments to get the full list of PID configs
     tracks = read_from_yaml(mode, tracks_file)
+    print("Tracks:")
+    pprint(tracks)
 
     # IF ON LXPLUS: if /tmp exists and is accessible, use for faster processing
     # IF NOT: use /tmp if you have enough RAM
