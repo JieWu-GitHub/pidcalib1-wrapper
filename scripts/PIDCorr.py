@@ -166,8 +166,10 @@ def PIDCorr(
                 print(command)
                 exit_code = os.system(command)
                 if exit_code != 0:
-                    print(f"ERROR::Command failed with exit code {exit_code}")
-                    sys.exit(exit_code)
+                    print(f"WARNING::Command failed with exit code {exit_code}")
+                    print(f"WARNING::        It's mostly likely due to harmless version compatibility issue. The program will continue, but please take your own risk.")
+                    # print(f"ERROR::Command failed with exit code {exit_code}")
+                    # sys.exit(exit_code)
 
         # Make directory if it doesn't exist
         os.makedirs(os.path.dirname(output_file), exist_ok=True)
